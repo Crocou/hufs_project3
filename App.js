@@ -106,7 +106,7 @@ function AppNavigator({ userId }) {
   }, [userId]);
 
   return (
-    <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "Kakao"}>
+    <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "MainTabs"}>
       <Stack.Screen name="Kakao" component={Kakao} />
       <Stack.Screen name="KakaoWebView" component={KakaoWebView} />
       <Stack.Screen name="LoginProfile" component={LoginProfileScreen} options={{ headerShown: false }} />

@@ -2,7 +2,7 @@
 
 const axios = require("axios");
 
-const conf = require('./KakaoAPI.json');
+const conf = require('../KakaoAPI.json');
 
 const CLIENT_ID = conf.CLIENT_ID;
 const REDIRECT_URI = "https://localhost:3000/auth/kakao/callback";

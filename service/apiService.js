@@ -63,8 +63,8 @@ export const updateUser = (userData) => {
 };
 
 // 즐겨찾기 가져오기
-export const getFav = (userId) => {
-  return sendRequestWithJWT(`/favorite/${userId}`, 'get');
+export const getFav = () => {
+  return sendRequestWithJWT(`/favorite`, 'get');
 };
 
 // 즐겨찾기 추가

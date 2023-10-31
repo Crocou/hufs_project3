@@ -15,7 +15,8 @@ const {createJWT} = require("./createJWT");
 const app = express();
 const port = process.env.port || 4000;
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors({
   origin: "*",
   credentials: true,
@@ -83,19 +84,33 @@ app.get('/', (req, res) => {
 
 // 2. 음료 목록
 app.get("/drink", (req, res) => {
-  connection.query("SELECT * FROM hufs.drink", (error, results, fields) => {
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+  const offset = (page - 1) * pageSize;
+
+  connection.query("SELECT COUNT(*) as total FROM hufs.drink", (error, countResults) => {
     if (error) {
-      console.error("Error retrieving users: ", error);
-      res.status(500).send({ message: "Error retrieving users" });
+      console.error("Error counting drinks: ", error);
+      res.status(500).send({ message: "Error counting drinks" });
       return;
     }
-    // 로그 추가: 응답 데이터를 콘솔에 출력
-    //console.log("Response data for /drink: ", results);
-    
-    console.log("success");
-    res.send(results);
+
+    const total = countResults[0].total;
+
+    const query = `
+      SELECT * FROM hufs.drink LIMIT ?, ?
+    `;
+
+    connection.query(query, [offset, pageSize], (error, results, fields) => {
+      if (error) {
+        console.error("Error retrieving drinks: ", error);
+        res.status(500).send({ message: "Error retrieving drinks" });
+        return;
+      }
+      res.send({ data: results, total: total });
+    });
   });
-}); 
+});
 
 // 3. 유저 정보
 app.get("/user", verifyJWT, (req, res) => {
@@ -211,6 +226,26 @@ app.post("/favorite", verifyJWT, (req, res) => {
     }
     console.log("Favorite data inserted successfully.");
     res.status(201).send({ message: "Favorite data inserted successfully." });
+  });
+});
+
+//즐겨찾기 불러오기
+app.get("/favorite", verifyJWT, (req, res) => {
+  const u_id = req.u_id; // verifyJWT 미들웨어에서 추가된 u_id 사용
+
+  const query = `
+    SELECT drink FROM favorite WHERE user = ?
+  `;
+
+  connection.query(query, [u_id], 
+  (error, results, fields) => {
+    if (error) {
+      console.error("Error retrieving favorite data: ", error);
+      res.status(500).send({ message: "Error retrieving favorite data" });
+      return;
+    }
+    //console.log("Favorite data retrieved successfully.");
+    res.status(200).send(results);
   });
 });
 

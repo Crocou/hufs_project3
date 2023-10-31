@@ -16,7 +16,7 @@ export const SavedInfoItem = ({ data, onSelect }) => {
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       try {
-        const favorites = await getFav();
+        const favorites = await getFav(); // userId를 전달하지 않음
         setIsStarred(favorites.some(fav => fav.drinkId === data.id));
       } catch (error) {
         console.error("Error checking favorite status:", error);
@@ -25,6 +25,7 @@ export const SavedInfoItem = ({ data, onSelect }) => {
 
     checkFavoriteStatus();
   }, [data.id]);
+
 
   const handleStarPress = async () => {
     const action = isStarred ? removeFav : addFav;
@@ -89,50 +90,54 @@ export const SavedInfoItem = ({ data, onSelect }) => {
 
 const SavedInfo = ({ searchTerm, onSelect }) => {
   const [savedData, setSavedData] = useState([]);
-  // 항목이 선택되었을 때의 처리
-  const handleItemSelect = (selectedItem) => {
-    console.log('Selected item:', selectedItem);
-    // 이곳에 항목이 선택되었을 때의 로직을 추가하세요
-    // 예를 들면, 다른 화면으로 이동하거나 상세 정보를 표시하는 등의 작업을 수행할 수 있습니다.
-  };
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const responseData = await getDrinkData();  // apiService에서 가져온 함수 사용
-    
-        // 전체 데이터를 매핑. 화면에는 당류와 카페인만 표시되지만, 
-        // 다른 모든 데이터도 가져와서 상태에 저장.
-        const mappedData = responseData.map(item => ({
-          drinkName: item.d_name,
-          manufacturer: item.manuf,
-          sugar: item.sugar,
-          caffeine: item.caffeine,
-          id: item.d_id,
-          size: item.size,
-          kcal: item.kcal,
-          protein: item.protein,
-          natrium: item.natrium,
-          fat: item.fat,
-          grade: item.grade,
-          source: item.source
-        }));
-  
-        setSavedData(mappedData);
+        const response = await getDrinkData(page);
+        console.log("Response from getDrinkData:", response);
+        if (Array.isArray(response)) {
+          const mappedData = response.map(item => ({
+            drinkName: item.d_name,
+            manufacturer: item.manuf,
+            sugar: item.sugar,
+            caffeine: item.caffeine,
+            id: item.d_id,
+            size: item.size,
+            kcal: item.kcal,
+            protein: item.protein,
+            natrium: item.natrium,
+            fat: item.fat,
+            grade: item.grade,
+            source: item.source
+          }));
+          setSavedData(prevData => [...prevData, ...mappedData]);
+        } else {
+          console.error("Expected an array but received:", response.data);
+        }
       } catch (error) {
         console.error("Error fetching drinks:", error);
       }
     };
-  
-    fetchData();
-  }, []);
-  
 
-  // 검색어를 사용하여 목록을 필터링
+    fetchData();
+  }, [page]);
+
+
+  const handleEndReached = () => {
+    const totalPages = Math.ceil(totalItems / 10);
+    if (page < totalPages) {
+      setPage(prevPage => prevPage + 1);
+    }
+  };
+
   const filteredData = searchTerm
-    ? savedData.filter(item => 
-        item.drinkName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? savedData.filter(item =>
+      item.drinkName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : savedData;
 
   return (
@@ -144,15 +149,14 @@ const SavedInfo = ({ searchTerm, onSelect }) => {
       justifyContent="center"
       flex={1}
     >
-
       <FlatList
-        data={filteredData} // 필터링된 데이터를 사용
-        renderItem={({ item }) => <SavedInfoItem data={item} onSelect={handleItemSelect} />}
+        data={filteredData}
+        renderItem={({ item }) => <SavedInfoItem data={item} onSelect={onSelect} />}
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{ alignItems: 'center', paddingBottom: 20 }}
-        onStartShouldSetResponderCapture={() => true}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.1}
       />
-
     </Flex>
   );
 };
