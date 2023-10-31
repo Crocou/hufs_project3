@@ -4,16 +4,19 @@ import { AntDesign } from '@expo/vector-icons';
 import { FlatList, TouchableWithoutFeedback } from 'react-native';
 import { getDrinkData, getFav, addFav, removeFav, addIntake } from "../service/apiService"; 
 
+// 영양소 이름과 한국어 매핑 정보
 const nutritionMapping = {
   sugar: "당류",
   caffeine: "카페인",
 };
 
+// 개별 저장 정보 항목 컴포넌트
 const SavedInfoItem = ({ data, onSelect }) => {
-  const [isStarred, setIsStarred] = useState(false);
+  const [isStarred, setIsStarred] = useState(false); // 즐겨찾기 여부 상태
   const formatValue = value => value % 1 === 0 ? Math.floor(value) : value;
 
   useEffect(() => {
+    // 즐겨찾기 상태를 확인하는 함수
     const checkFavoriteStatus = async () => {
       try {
         const favorites = await getFav();
@@ -25,7 +28,8 @@ const SavedInfoItem = ({ data, onSelect }) => {
   
     checkFavoriteStatus();
   }, [data.id]);
-
+ 
+  // 즐겨찾기 버튼을 처리하는 함수
   const handleStarPress = async () => {
     try {
       if (isStarred) {
@@ -39,6 +43,7 @@ const SavedInfoItem = ({ data, onSelect }) => {
     }
   };
 
+  // 섭취 정보를 추가하는 함수
   const handleAddIntake = async () => {
     try {
       // 현재 날짜와 시간을 가져옵니다.
@@ -58,6 +63,7 @@ const SavedInfoItem = ({ data, onSelect }) => {
     }
   };  
 
+  // UI 구성 및 이벤트 핸들링
   return (
     <TouchableWithoutFeedback onPress={() => onSelect(data)}>
       <Box {...styles.box}>
@@ -108,15 +114,19 @@ const SavedInfoItem = ({ data, onSelect }) => {
   );
 };
 
+// 저장된 음료 정보 전체 목록을 관리하는 컴포넌트
 const SavedInfo = ({ searchTerm, onSelect }) => {
-  const [savedData, setSavedData] = useState([]);
+  const [savedData, setSavedData] = useState([]); // 저장된 음료 데이터 상태
+  
   // 항목이 선택되었을 때의 처리
   const handleItemSelect = (selectedItem) => {
     console.log('Selected item:', selectedItem);
     // 이곳에 항목이 선택되었을 때의 로직을 추가하세요
     // 예를 들면, 다른 화면으로 이동하거나 상세 정보를 표시하는 등의 작업을 수행할 수 있습니다.
   };
+
   useEffect(() => {
+    // 음료 데이터를 가져오는 함수
     const fetchData = async () => {
       try {
         const responseData = await getDrinkData();  // apiService에서 가져온 함수 사용
@@ -156,6 +166,7 @@ const SavedInfo = ({ searchTerm, onSelect }) => {
       )
     : savedData;
 
+  // UI 구성 및 리스트 렌더링
   return (
     <Flex
       direction="column"

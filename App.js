@@ -22,6 +22,7 @@ import LoginProfileScreen2 from './screens/LoginProfileScreen2';
 global.atob = base64.decode;
 global.btoa = base64.encode;
 
+// 네비게이션 구조를 위한 탭 및 스택 생성자 초기화
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -39,6 +40,7 @@ function ProfileScreen() {
   );
 }
 
+// 하단 탭 네비게이션 컴포넌트
 function MyTabs() {
   return (
     <Tab.Navigator>
@@ -96,15 +98,18 @@ function MyTabs() {
   );
 }
 
+// 앱의 메인 네비게이션 로직을 담당하는 컴포넌트
 function AppNavigator({ userId }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!userId);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!userId); // 사용자 인증 여부 상태
 
   useEffect(() => {
+    // 사용자 인증 여부에 따라 초기 화면 설정
     setIsAuthenticated(!!userId);
     const initialScreenName = isAuthenticated ? "Kakao" : "MainTabs";
     console.log("Initial screen set to:", initialScreenName);
   }, [userId]);
 
+  // 사용자 인증 여부에 따라 초기 화면 설정
   return (
     <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "MainTabs"}>
       <Stack.Screen name="Kakao" component={Kakao} />
@@ -120,8 +125,9 @@ export default function App() {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    // JWT를 확인하여 사용자 인증 처리
     const verifyUserExists = async () => {
-      const token = await getJWT();
+      const token = await getJWT(); // 토큰 불러오기
       console.log('Stored JWT:', token);
 
       if (token) {
@@ -133,6 +139,7 @@ export default function App() {
           return;
         }
 
+        // 토큰에서 사용자 ID 추출 및 데이터베이스에서 사용자 존재 여부 확인
         const extractedUserId = decodedToken && decodedToken.userId && decodedToken.userId[0] && decodedToken.userId[0].u_id;
         console.log('Extracted user_id from JWT:', extractedUserId);
 

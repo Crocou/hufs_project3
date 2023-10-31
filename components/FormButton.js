@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AntDesign } from '@expo/vector-icons';
 import { addCustomDrink } from '../service/apiService'
 
+// 영양 정보 입력 필드 컴포넌트
 const NutritionInfoInput = ({ label, value, onChangeText }) => (
   <Flex direction="row" align="center" width="45%">
     <Text fontSize="10px" flex={2}>
@@ -19,9 +20,12 @@ const NutritionInfoInput = ({ label, value, onChangeText }) => (
   </Flex>
 );
 
+// 폼 버튼 및 모달 관리 컴포넌트
 export const FormButton = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [warningVisible, setWarningVisible] = useState(false);
+  const [showModal, setShowModal] = useState(false); // 모달 보이기/숨기기
+  const [warningVisible, setWarningVisible] = useState(false); // 경고 메시지 표시
+
+  // 입력 필드들의 상태
   const [manufacturer, setManufacturer] = useState("");
   const [drinkName, setDrinkName] = useState("");
   const [size, setSize] = useState("");
@@ -32,6 +36,7 @@ export const FormButton = () => {
   const [fat, setFat] = useState("");
   const [natruim, setNatruim] = useState("");
 
+  // 입력 필드들이 모두 채워졌는지 확인하는 함수
   const inputFilled = () => {
     return (
       manufacturer &&
@@ -46,6 +51,7 @@ export const FormButton = () => {
     );
   };
 
+  // 입력 필드들이 모두 채워졌는지 확인하는 함수
   const resetFields = () => {
     setManufacturer("");
     setDrinkName("");
@@ -58,12 +64,14 @@ export const FormButton = () => {
     setNatruim("");
   };
 
+  // 입력 필드들이 모두 채워졌는지 확인하는 함수
   const handleModalClose = () => {
     resetFields();
     setWarningVisible(false);
     setShowModal(false);
   };
 
+  // 제출 처리 함수
   const handleSubmit = async () => {
     if (inputFilled()) {
       const drinkData = {
@@ -76,27 +84,27 @@ export const FormButton = () => {
         protein: parseFloat(protein),
         fat: parseFloat(fat),
         natrium: parseFloat(natruim),
-        // 필요한 경우 다른 필드도 추가할 수 있습니다.
       };
-  
+
+      // 데이터베이스에 음료 정보를 등록
       try {
-        await addCustomDrink(drinkData);  // 데이터베이스에 음료 정보를 등록
+        await addCustomDrink(drinkData);
         console.log("음료 정보가 성공적으로 등록되었습니다.");
       } catch (error) {
         console.error("음료 정보 등록 중 오류가 발생했습니다.", error);
       }
-  
-      setShowModal(false);
-      resetFields();
-      setWarningVisible(false);
+
+      setShowModal(false); // 모달 닫기
+      resetFields(); // 필드 초기화
+      setWarningVisible(false); // 경고 메시지 숨기기
     } else {
-      setWarningVisible(true);
+      setWarningVisible(true); // 필드가 하나라도 비어있으면 경고 메시지 표시
     }
   };
 
   return (
-    <>
-      <Button
+    <> 
+      <Button 
         backgroundColor="white"
         onPress={() => setShowModal(true)}>
         <AntDesign name="form" size={24} color="#9747FF" />
@@ -153,10 +161,10 @@ export const FormButton = () => {
             <Button
               width="60%"
               borderRadius="30"
-              bg={inputFilled() ? '#9747FF' : 'lightgray'}  
+              bg={inputFilled() ? '#9747FF' : 'lightgray'}
               color='white'
-              onPress={inputFilled() ? handleSubmit : null}  
-              disabled={!inputFilled()}  
+              onPress={inputFilled() ? handleSubmit : null}
+              disabled={!inputFilled()}
             >
               저장하기
             </Button>

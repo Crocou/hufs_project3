@@ -17,13 +17,14 @@ const port = process.env.port || 4000;
 
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+// cors 권한 추가 설정: 실제 앱 등록시 외부 제약 방지
 app.use(cors({
   origin: "*",
   credentials: true,
   optionSuccessStatus: 200,
 }));
-// cors 권한 추가 설정: 실제 앱 등록시 외부 제약 방지
- 
+
 const data = fs.readFileSync('./db.json');
 const conf = JSON.parse(data);
 const jwt = require('jsonwebtoken');
