@@ -57,6 +57,16 @@ export const getDrinkData = () => {
   return sendRequestWithJWT('/drink', 'get');
 };
 
+// 커스텀 음료 등록
+export const addCustomDrink = (drinkData) => {
+  return sendRequestWithJWT('/customDrink', 'post', drinkData);
+};
+
+// 커스텀 음료 삭제
+export const deleteCustomDrink = (d_id) => {
+  return sendRequestWithJWT(`/customDrink/${d_id}`, 'delete');
+};
+
 // 사용자 프로필 서버에 보내기
 export const updateUser = (userData) => {
   return sendRequestWithJWT('/user', 'put', userData);
@@ -73,9 +83,18 @@ export const addFav = (drinkId) => {
   return sendRequestWithJWT('/favorite', 'post', favoriteData);
 };
 
-
 // 즐겨찾기 제거
 export const removeFav = (drinkId) => {
   const favoriteData = { drink: drinkId };
   return sendRequestWithJWT('/favorite', 'delete', favoriteData);
+};
+
+// 음료 섭취 추가
+export const addIntake = (intakeData) => {
+  return sendRequestWithJWT('/intake', 'post', intakeData);
+};
+
+// 음료 섭취 기록 조회
+export const getIntake = () => {
+  return sendRequestWithJWT('/intake', 'get');
 };

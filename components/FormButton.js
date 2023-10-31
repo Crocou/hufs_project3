@@ -1,6 +1,7 @@
 import { Text, Flex, Button, Modal, FormControl, Input } from "native-base";
 import { useState } from "react";
 import { AntDesign } from '@expo/vector-icons';
+import { addCustomDrink } from '../service/apiService'
 
 const NutritionInfoInput = ({ label, value, onChangeText }) => (
   <Flex direction="row" align="center" width="45%">
@@ -63,20 +64,28 @@ export const FormButton = () => {
     setShowModal(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (inputFilled()) {
-      console.log({
-        manufacturer,
-        drinkName,
-        size,
-        kcal,
-        sugar,
-        caffeine,
-        protein,
-        fat,
-        natruim,
-      });
-
+      const drinkData = {
+        d_name: drinkName,
+        manuf: manufacturer,
+        size: parseFloat(size),
+        kcal: parseFloat(kcal),
+        sugar: parseFloat(sugar),
+        caffeine: parseFloat(caffeine),
+        protein: parseFloat(protein),
+        fat: parseFloat(fat),
+        natrium: parseFloat(natruim),
+        // 필요한 경우 다른 필드도 추가할 수 있습니다.
+      };
+  
+      try {
+        await addCustomDrink(drinkData);  // 데이터베이스에 음료 정보를 등록
+        console.log("음료 정보가 성공적으로 등록되었습니다.");
+      } catch (error) {
+        console.error("음료 정보 등록 중 오류가 발생했습니다.", error);
+      }
+  
       setShowModal(false);
       resetFields();
       setWarningVisible(false);
@@ -144,9 +153,11 @@ export const FormButton = () => {
             <Button
               width="60%"
               borderRadius="30"
-              bg='#9747FF'
+              bg={inputFilled() ? '#9747FF' : 'lightgray'}  
               color='white'
-              onPress={handleSubmit}>
+              onPress={inputFilled() ? handleSubmit : null}  
+              disabled={!inputFilled()}  
+            >
               저장하기
             </Button>
 

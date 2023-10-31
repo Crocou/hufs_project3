@@ -82,35 +82,123 @@ app.get('/', (req, res) => {
   res.send('홈')
 });
 
+
+
+
 // 2. 음료 목록
 app.get("/drink", (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const pageSize = parseInt(req.query.pageSize) || 10;
-  const offset = (page - 1) * pageSize;
-
-  connection.query("SELECT COUNT(*) as total FROM hufs.drink", (error, countResults) => {
+  connection.query("SELECT * FROM hufs.drink", (error, results, fields) => {
     if (error) {
-      console.error("Error counting drinks: ", error);
-      res.status(500).send({ message: "Error counting drinks" });
+      console.error("Error retrieving users: ", error);
+      res.status(500).send({ message: "Error retrieving users" });
+      return;
+    }
+    // 로그 추가: 응답 데이터를 콘솔에 출력
+    //console.log("Response data for /drink: ", results);
+    
+    console.log("success");
+    res.send(results);
+  });
+}); 
+
+// 커스텀 음료 추가
+app.post("/customDrink", verifyJWT, (req, res) => {
+  const source = req.u_id;
+
+  const sugar = req.body.sugar;
+  const s_cotent = sugar / 50;
+  let grade = null;
+
+  if (s_cotent < 0.25 && s_cotent >= 0) {
+    grade = "A";
+  } else if (s_cotent < 0.5 && s_cotent >= 25) {
+    grade = "B";
+  } else if (s_cotent < 0.75 && s_cotent >= 50) {
+    grade = "C";
+  } else if (s_cotent < 1 && s_cotent >= 75) {
+    grade = "D";
+  } else {
+    grade = "F";
+  }
+
+  // 새로운 음료 정보 삽입
+  const query = `
+    INSERT INTO drink (d_name, manuf, size, kcal, sugar, protein, natrium, fat, caffeine, s_cotent, grade, source) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  connection.query(query, 
+    [
+      req.body.d_name, 
+      req.body.manuf, 
+      req.body.size, 
+      req.body.kcal, 
+      req.body.sugar, 
+      req.body.protein, 
+      req.body.natrium, 
+      req.body.fat, 
+      req.body.caffeine, 
+      s_cotent, 
+      grade, 
+      source
+    ], 
+    (error, results) => {
+      if (error) {
+        console.error("Error inserting custom drink: ", error);
+        res.status(500).send({ message: "Error inserting custom drink" });
+        return;
+      }
+      res.status(201).send({ message: "Custom drink added successfully." });
+    }
+  );
+});
+
+// 커스텀 음료 삭제
+app.delete("/customDrink/:d_id", verifyJWT, (req, res) => {
+  const drinkId = req.params.d_id;
+  const userId = req.u_id; // JWT 토큰 유효성 검사에서 추출한 u_id
+
+  // 음료의 source 정보 조회
+  connection.query("SELECT source FROM drink WHERE d_id = ?", [drinkId], (error, results) => {
+    if (error) {
+      console.error("Error retrieving drink source: ", error);
+      res.status(500).send({ message: "Error retrieving drink source" });
       return;
     }
 
-    const total = countResults[0].total;
+    if (results.length === 0) {
+      res.status(404).send({ message: "Drink not found" });
+      return;
+    }
 
-    const query = `
-      SELECT * FROM hufs.drink LIMIT ?, ?
-    `;
+    const source = results[0].source;
 
-    connection.query(query, [offset, pageSize], (error, results, fields) => {
+    // source가 null이면 삭제 거부
+    if (source === null) {
+      res.status(403).send({ message: "Cannot delete a drink with null source" });
+      return;
+    }
+
+    // source가 현재 사용자의 u_id와 일치하지 않으면 삭제 거부
+    if (source !== userId) {
+      res.status(403).send({ message: "You can only delete your own custom drinks" });
+      return;
+    }
+
+    // 음료 삭제
+    connection.query("DELETE FROM drink WHERE d_id = ?", [drinkId], (error, results) => {
       if (error) {
-        console.error("Error retrieving drinks: ", error);
-        res.status(500).send({ message: "Error retrieving drinks" });
+        console.error("Error deleting custom drink: ", error);
+        res.status(500).send({ message: "Error deleting custom drink" });
         return;
       }
-      res.send({ data: results, total: total });
+      res.status(200).send({ message: "Custom drink deleted successfully." });
     });
   });
 });
+
+
+
 
 // 3. 유저 정보
 app.get("/user", verifyJWT, (req, res) => {
@@ -144,6 +232,7 @@ app.put("/user", verifyJWT, (req, res) => {
     res.status(200).send({ message: "User data updated successfully." });
   });
 });
+
 
 
 //kakao 로그인
@@ -207,6 +296,9 @@ app.post("/auth/info", (req, res) => {
     }
   })
 })
+
+
+
 
 // 4. 즐겨찾기 추가
 app.post("/favorite", verifyJWT, (req, res) => {
@@ -275,6 +367,52 @@ app.delete("/favorite", verifyJWT, (req, res) => {
     res.status(200).send({ message: "Favorite data deleted successfully." });
   });
 });
+
+
+
+
+// 5. 음료 섭취 추가
+app.post("/intake", verifyJWT, (req, res) => {
+  const user = req.u_id; // JWT에서 추출한 u_id 사용
+  const { date, drink, time } = req.body;
+
+  const query = `
+    INSERT INTO intake (user, date, drink, time) 
+    VALUES (?, ?, ?, ?)
+  `;
+
+  connection.query(query, [user, date, drink, time], 
+  (error, results) => {
+    if (error) {
+      console.error("Error inserting intake data: ", error);
+      res.status(500).send({ message: "Error inserting intake data" });
+      return;
+    }
+    console.log("Intake data inserted successfully.");
+    res.status(201).send({ message: "Intake data inserted successfully." });
+  });
+});
+
+// 음료 섭취 조회
+app.get("/intake", verifyJWT, (req, res) => {
+  const user = req.u_id; // JWT에서 추출한 u_id 사용
+
+  const query = `
+    SELECT * FROM intake WHERE user = ?
+  `;
+
+  connection.query(query, [user], 
+  (error, results) => {
+    if (error) {
+      console.error("Error retrieving intake data: ", error);
+      res.status(500).send({ message: "Error retrieving intake data" });
+      return;
+    }
+    res.status(200).send(results);
+  });
+});
+
+
 
 
 //서버 구동
