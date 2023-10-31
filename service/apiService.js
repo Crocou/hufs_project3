@@ -31,7 +31,7 @@ async function sendRequestWithJWT(endpoint, method, data = null) {
     }
 
     const response = await apiClient(config);
-    console.log(`Sending ${method} request to ${endpoint} with data:`, data, 'and headers:', headers);
+    //console.log(`Sending ${method} request to ${endpoint} with data:`, data, 'and headers:', headers);
     return response.data;
   } catch (error) {
     console.error(`요청 실패 - 엔드포인트: ${endpoint}, 메서드: ${method}`);
@@ -68,13 +68,14 @@ export const getFav = () => {
 };
 
 // 즐겨찾기 추가
-export const addFav = (userId, drinkId) => {
-  const favoriteData = { user: userId, drink: drinkId };
+export const addFav = (drinkId) => {
+  const favoriteData = { drink: drinkId };
   return sendRequestWithJWT('/favorite', 'post', favoriteData);
 };
 
+
 // 즐겨찾기 제거
-export const removeFav = (userId, drinkId) => {
-  const favoriteData = { user: userId, drink: drinkId };
+export const removeFav = (drinkId) => {
+  const favoriteData = { drink: drinkId };
   return sendRequestWithJWT('/favorite', 'delete', favoriteData);
 };

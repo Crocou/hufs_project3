@@ -208,9 +208,10 @@ app.post("/auth/info", (req, res) => {
   })
 })
 
-// 4. 즐겨찾기
+// 4. 즐겨찾기 추가
 app.post("/favorite", verifyJWT, (req, res) => {
-  const { user, drink } = req.body;
+  const drink = req.body.drink;
+  const user = req.u_id; // JWT에서 추출한 u_id 사용
 
   const query = `
     INSERT INTO hufs.favorite (user, drink) 
@@ -248,6 +249,33 @@ app.get("/favorite", verifyJWT, (req, res) => {
     res.status(200).send(results);
   });
 });
+
+//즐겨찾기 제거
+app.delete("/favorite", verifyJWT, (req, res) => {
+  const drink = req.body.drink;
+  const user = req.u_id; // JWT에서 추출한 u_id 사용
+
+  const query = `
+    DELETE FROM hufs.favorite 
+    WHERE user = ? AND drink = ?
+  `;
+
+  connection.query(query, [user, drink], 
+  (error, results, fields) => {
+    if (error) {
+      console.error("Error deleting favorite data: ", error);
+      res.status(500).send({ message: "Error deleting favorite data" });
+      return;
+    }
+    if (results.affectedRows === 0) {
+      res.status(404).send({ message: "Favorite data not found." });
+      return;
+    }
+    console.log("Favorite data deleted successfully.");
+    res.status(200).send({ message: "Favorite data deleted successfully." });
+  });
+});
+
 
 //서버 구동
 app.listen(port, () => {
