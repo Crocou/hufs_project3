@@ -39,16 +39,6 @@ function MyTabs() {
   return (
     <Tab.Navigator>
       <Tab.Screen
-        name="홈"
-        component={HomeScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="home" size={size} color={color} />
-          )
-        }}
-      />
-
-      <Tab.Screen
         name="리포트"
         component={ReportScreen}
         options={{
@@ -69,6 +59,16 @@ function MyTabs() {
         }}
       />
 
+      <Tab.Screen
+        name="홈"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign name="home" size={size} color={color} />
+          )
+        }}
+      />
+      
       <Tab.Screen
         name="보관함"
         component={BookmarkScreen}
