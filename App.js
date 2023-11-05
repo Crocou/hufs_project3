@@ -14,6 +14,7 @@ import { getJWT } from './service/authService';
 import { HomeScreen } from './screens/HomeScreen';
 import { BookmarkScreen } from './screens/BookmarkScreen';
 import { SearchScreen } from './screens/SearchScreen';
+import { ReportScreen } from './screens/ReportScreen';
 import LoginProfileScreen from './screens/LoginProfileScreen';
 import LoginProfileScreen2 from './screens/LoginProfileScreen2';
 
@@ -25,13 +26,6 @@ global.btoa = base64.encode;
 // 네비게이션 구조를 위한 탭 및 스택 생성자 초기화
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
-function ReportScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white' }}>
-    </View>
-  );
-}
 
 function ProfileScreen() {
   return (

@@ -94,13 +94,32 @@ app.get("/drink", (req, res) => {
       res.status(500).send({ message: "Error retrieving users" });
       return;
     }
-    // 로그 추가: 응답 데이터를 콘솔에 출력
-    //console.log("Response data for /drink: ", results);
     
     console.log("success");
     res.send(results);
   });
 }); 
+
+//d_id로 음료 데이터 조회
+app.get("/drink/:d_id", (req, res) => {
+  const drinkId = req.params.d_id;
+
+  connection.query("SELECT * FROM hufs.drink WHERE d_id = ?", [drinkId], (error, results, fields) => {
+    if (error) {
+      console.error("Error retrieving drink: ", error);
+      res.status(500).send({ message: "Error retrieving drink" });
+      return;
+    }
+    
+    if (results.length > 0) {
+      console.log("Drink found:", results[0]);
+      res.send(results[0]);
+    } else {
+      res.status(404).send({ message: "Drink not found" });
+    }
+  });
+});
+
 
 // 커스텀 음료 추가
 app.post("/customDrink", verifyJWT, (req, res) => {
@@ -413,6 +432,57 @@ app.get("/intake", verifyJWT, (req, res) => {
   });
 });
 
+//일일 섭취 기록 조회
+app.get("/intake/today", verifyJWT, (req, res) => {
+  const u_id = req.u_id; // JWT 미들웨어에서 추출된 사용자 ID
+
+  // 현재 날짜를 YYYY-MM-DD 형식으로 얻습니다.
+  const today = new Date().toISOString().slice(0, 10);
+
+  // 데이터베이스 쿼리
+  const query = `
+    SELECT * FROM intake 
+    WHERE user = ? AND DATE(date) = ?
+  `;
+
+  connection.query(query, [u_id, today], 
+  (error, results) => {
+    if (error) {
+      console.error("Error retrieving today's intake data: ", error);
+      res.status(500).send({ message: "Error retrieving today's intake data" });
+      return;
+    }
+    res.status(200).send(results);
+  });
+});
+
+//주간 섭취 기록 조회
+app.get("/intake/week", verifyJWT, (req, res) => {
+  const u_id = req.u_id; // JWT 미들웨어에서 추출된 사용자 ID
+
+  // 현재 날짜와 주의 첫째 날짜를 구합니다.
+  const today = new Date();
+  const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+
+  // YYYY-MM-DD 형식으로 날짜 포매팅
+  const formattedFirstDayOfWeek = firstDayOfWeek.toISOString().slice(0, 10);
+
+  // 데이터베이스 쿼리
+  const query = `
+    SELECT * FROM intake 
+    WHERE user = ? AND DATE(date) >= ?
+  `;
+
+  connection.query(query, [u_id, formattedFirstDayOfWeek], 
+  (error, results) => {
+    if (error) {
+      console.error("Error retrieving week's intake data: ", error);
+      res.status(500).send({ message: "Error retrieving week's intake data" });
+      return;
+    }
+    res.status(200).send(results);
+  });
+});
 
 
 

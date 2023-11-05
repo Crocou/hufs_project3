@@ -57,6 +57,11 @@ export const getDrinkData = () => {
   return sendRequestWithJWT('/drink', 'get');
 };
 
+// 특정 음료의 데이터 가져오기
+export const getDrinkDataById = (d_id) => {
+  return sendRequestWithJWT(`/drink/${d_id}`, 'get');
+};
+
 // 커스텀 음료 등록
 export const addCustomDrink = (drinkData) => {
   return sendRequestWithJWT('/customDrink', 'post', drinkData);
@@ -94,7 +99,12 @@ export const addIntake = (intakeData) => {
   return sendRequestWithJWT('/intake', 'post', intakeData);
 };
 
-// 음료 섭취 기록 조회
-export const getIntake = () => {
-  return sendRequestWithJWT('/intake', 'get');
+// 당일 음료 섭취 데이터 가져오기
+export const getTodayIntake = () => {
+  return sendRequestWithJWT('/intake/today', 'get');
+};
+
+// 주간 음료 섭취 데이터 가져오기
+export const getWeekIntake = () => {
+  return sendRequestWithJWT('/intake/week', 'get');
 };
