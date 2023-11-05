@@ -4,6 +4,7 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
 const CircularProgress = ({ nutrient, currentAmount, goalAmount, unit }) => {
   const fill = (currentAmount / goalAmount) * 100;
+  const tintColor = currentAmount >= goalAmount ? '#FF0000' : '#ABE86E';
 
   return (
     <View style={styles.container}>
@@ -12,7 +13,7 @@ const CircularProgress = ({ nutrient, currentAmount, goalAmount, unit }) => {
         size={96} 
         width={12} 
         fill={fill}
-        tintColor="#ABE86E"
+        tintColor={tintColor} 
         backgroundColor="#EFF2F5"
         lineCap="round"
         style={styles.CircularProgress}
@@ -24,7 +25,6 @@ const CircularProgress = ({ nutrient, currentAmount, goalAmount, unit }) => {
 
       <View style={styles.textContainer} marginTop={8}> 
         <Text style={styles.nutrientText}>{nutrient}</Text>
-
         <Text style={styles.amountText} marginTop={4}>{`${currentAmount} / ${goalAmount} ${unit}`}</Text> 
       </View>
     </View>
