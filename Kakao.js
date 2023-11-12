@@ -3,7 +3,7 @@ import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import KakaoWebView from './KakaoWebView';
 
-const CLIENT_ID = "695757edacbf01e55c4d269a9ff165ba";
+const CLIENT_ID = "575664ff92b3f266df94d4a99dd042cc";
 const REDIRECT_URI = "http://localhost:3000/auth/kakao/callback";
 
 const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;

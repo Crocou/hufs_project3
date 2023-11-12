@@ -7,7 +7,7 @@ import { saveJWT } from './service/authService';
 const conf = require('./KakaoAPI.json');
 
 const CLIENT_ID = conf.CLIENT_ID;
-const REDIRECT_URI = "https://localhost:3000/auth/kakao/callback";
+const REDIRECT_URI = "http://localhost:3000/auth/kakao/callback";
 const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
 
 const KakaoWebView = () => {
@@ -43,7 +43,7 @@ const KakaoWebView = () => {
   // 인증 코드를 서버에 전송하고 JWT 토큰을 받는 함수입니다.
   const sendCodeToServer = async (code) => {
     try {
-      const response = await fetch('http://172.30.1.11:4000/auth', {
+      const response = await fetch('http://10.10.1.99:4000/auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import { Text, Flex, Box } from "native-base";
 import { AntDesign } from '@expo/vector-icons';
 import { FlatList, TouchableWithoutFeedback } from 'react-native';
 import { getDrinkData, getFav, addFav, removeFav, addIntake } from "../service/apiService"; 
+import SavedInfoFrame from "./SavedInfoFrame";
 
 // 영양소 이름과 한국어 매핑 정보
 const nutritionMapping = {
@@ -121,6 +122,9 @@ const SavedInfo = ({ searchTerm, onSelect }) => {
   // 항목이 선택되었을 때의 처리
   const handleItemSelect = (selectedItem) => {
     console.log('Selected item:', selectedItem);
+    if (onSelect) {
+      onSelect(selectedItem);
+    }
     // 이곳에 항목이 선택되었을 때의 로직을 추가하세요
     // 예를 들면, 다른 화면으로 이동하거나 상세 정보를 표시하는 등의 작업을 수행할 수 있습니다.
   };

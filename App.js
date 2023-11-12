@@ -99,13 +99,13 @@ function AppNavigator({ userId }) {
   useEffect(() => {
     // 사용자 인증 여부에 따라 초기 화면 설정
     setIsAuthenticated(!!userId);
-    const initialScreenName = isAuthenticated ? "Kakao" : "MainTabs";
+    const initialScreenName = isAuthenticated ? "Kakao" : "Kakao";
     console.log("Initial screen set to:", initialScreenName);
   }, [userId]);
 
   // 사용자 인증 여부에 따라 초기 화면 설정
   return (
-    <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "MainTabs"}>
+    <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "Kakao"}>
       <Stack.Screen name="Kakao" component={Kakao} />
       <Stack.Screen name="KakaoWebView" component={KakaoWebView} />
       <Stack.Screen name="LoginProfile" component={LoginProfileScreen} options={{ headerShown: false }} />
@@ -138,7 +138,7 @@ export default function App() {
         console.log('Extracted user_id from JWT:', extractedUserId);
 
         if (extractedUserId) {
-          const response = await fetch(`http://172.30.1.11:4000/auth/info?user_id=${extractedUserId}`);
+          const response = await fetch(`http://10.10.1.99:4000/auth/info?user_id=${extractedUserId}`);
           const data = await response.json();
 
           console.log('Server response:', data);  // <== 로그 출력 추가

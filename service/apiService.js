@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getJWT } from './authService';
 
-const BASE_URL = 'http://172.30.1.11:4000';
+const BASE_URL = 'http://10.10.1.99:4000';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
