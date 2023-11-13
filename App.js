@@ -37,7 +37,7 @@ function ProfileScreen() {
 // 하단 탭 네비게이션 컴포넌트
 function MyTabs() {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator initialRouteName="홈">
       <Tab.Screen
         name="리포트"
         component={ReportScreen}
@@ -99,13 +99,13 @@ function AppNavigator({ userId }) {
   useEffect(() => {
     // 사용자 인증 여부에 따라 초기 화면 설정
     setIsAuthenticated(!!userId);
-    const initialScreenName = isAuthenticated ? "Kakao" : "Kakao";
+    const initialScreenName = isAuthenticated ? "Kakao" : "MainTabs";
     console.log("Initial screen set to:", initialScreenName);
   }, [userId]);
 
   // 사용자 인증 여부에 따라 초기 화면 설정
   return (
-    <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "Kakao"}>
+    <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "MainTabs"}>
       <Stack.Screen name="Kakao" component={Kakao} />
       <Stack.Screen name="KakaoWebView" component={KakaoWebView} />
       <Stack.Screen name="LoginProfile" component={LoginProfileScreen} options={{ headerShown: false }} />
@@ -128,27 +128,34 @@ export default function App() {
         let decodedToken;
         try {
           decodedToken = jwtDecode(token);
+          console.log('Decoded Token:', decodedToken); // 디코딩된 토큰 로그 출력
         } catch (error) {
           console.error("Error decoding the token:", error);
           return;
         }
 
-        // 토큰에서 사용자 ID 추출 및 데이터베이스에서 사용자 존재 여부 확인
+        // 토큰에서 사용자 ID 추출
         const extractedUserId = decodedToken && decodedToken.userId && decodedToken.userId[0] && decodedToken.userId[0].u_id;
         console.log('Extracted user_id from JWT:', extractedUserId);
 
+        // 사용자 ID가 있을 경우 서버에 확인 요청
         if (extractedUserId) {
-          const response = await fetch(`http://10.10.1.99:4000/auth/info?user_id=${extractedUserId}`);
-          const data = await response.json();
+          try {
+            const response = await fetch(`http://172.30.1.95:4000/auth/info?user_id=${extractedUserId}`);
+            const data = await response.json();
+            console.log('Server response:', data);
 
-          console.log('Server response:', data);  // <== 로그 출력 추가
-
-          if (data.result && data.result.length > 0) {
-            console.log('User exists in the database');
-            setUserId(extractedUserId); // userId 상태 설정
-          } else {
-            console.log('User not found in the database');
+            if (data.result && data.result.length > 0) {
+              console.log('User exists in the database');
+              setUserId(extractedUserId); // userId 상태 설정
+            } else {
+              console.log('User not found in the database');
+            }
+          } catch (fetchError) {
+            console.error('Error fetching user info:', fetchError);
           }
+        } else {
+          console.error('User ID not found in decoded token');
         }
       }
     };

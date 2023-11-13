@@ -8,9 +8,9 @@ const mysql = require("mysql2");
 const jwtConfig = JSON.parse(fs.readFileSync('./jwt.json'));
 const jwtSecret = jwtConfig.key;
 
-const {getToken} = require("./getUserToken");
-const {getInfo} = require("./getUserToken");
-const {createJWT} = require("./createJWT");
+const { getToken } = require("./getUserToken");
+const { getInfo } = require("./getUserToken");
+const { createJWT } = require("./createJWT");
 
 const app = express();
 const port = process.env.port || 4000;
@@ -58,8 +58,10 @@ function verifyJWT(req, res, next) {
       return res.status(401).send({ message: "Invalid token." });
     }
 
-    // JWT 페이로드에서 u_id를 추출합니다.
-    // 페이로드의 구조에 따라 경로가 달라질 수 있습니다.
+    if (!decoded || !decoded.userId || !Array.isArray(decoded.userId) || decoded.userId.length === 0) {
+      return res.status(401).send({ message: "Invalid token structure." });
+    }
+
     const u_id = decoded.userId[0].u_id;
     req.u_id = u_id; // req 객체에 u_id를 추가합니다.
 
@@ -69,11 +71,11 @@ function verifyJWT(req, res, next) {
 
 //db 연결
 connection.connect((err) => {
-    if (err) {
-      console.error("Error connecting to the database: ", err);
-      return;
-    }
-    console.log("Connected to the database!");
+  if (err) {
+    console.error("Error connecting to the database: ", err);
+    return;
+  }
+  console.log("Connected to the database!");
 });
 
 //데이터 조회
@@ -94,11 +96,11 @@ app.get("/drink", (req, res) => {
       res.status(500).send({ message: "Error retrieving users" });
       return;
     }
-    
+
     console.log("success");
     res.send(results);
   });
-}); 
+});
 
 //d_id로 음료 데이터 조회
 app.get("/drink/:d_id", (req, res) => {
@@ -110,7 +112,7 @@ app.get("/drink/:d_id", (req, res) => {
       res.status(500).send({ message: "Error retrieving drink" });
       return;
     }
-    
+
     if (results.length > 0) {
       console.log("Drink found:", results[0]);
       res.send(results[0]);
@@ -119,7 +121,6 @@ app.get("/drink/:d_id", (req, res) => {
     }
   });
 });
-
 
 // 커스텀 음료 추가
 app.post("/customDrink", verifyJWT, (req, res) => {
@@ -147,21 +148,21 @@ app.post("/customDrink", verifyJWT, (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-  connection.query(query, 
+  connection.query(query,
     [
-      req.body.d_name, 
-      req.body.manuf, 
-      req.body.size, 
-      req.body.kcal, 
-      req.body.sugar, 
-      req.body.protein, 
-      req.body.natrium, 
-      req.body.fat, 
-      req.body.caffeine, 
-      s_cotent, 
-      grade, 
+      req.body.d_name,
+      req.body.manuf,
+      req.body.size,
+      req.body.kcal,
+      req.body.sugar,
+      req.body.protein,
+      req.body.natrium,
+      req.body.fat,
+      req.body.caffeine,
+      s_cotent,
+      grade,
       source
-    ], 
+    ],
     (error, results) => {
       if (error) {
         console.error("Error inserting custom drink: ", error);
@@ -231,7 +232,7 @@ app.get("/user", verifyJWT, (req, res) => {
     console.log("success");
     res.send(results);
   });
-}); 
+});
 
 // 유저 정보 업데이트
 app.put("/user", verifyJWT, (req, res) => {
@@ -244,13 +245,13 @@ app.put("/user", verifyJWT, (req, res) => {
     WHERE u_id = ?
   `;
 
-  connection.query(query, [height, weight, age, sex, activity_level, u_sugar_gram, u_id], 
-  (error, results) => {
-    if (error) {
-      return res.status(500).send({ message: "Error updating user data" });
-    }
-    res.status(200).send({ message: "User data updated successfully." });
-  });
+  connection.query(query, [height, weight, age, sex, activity_level, u_sugar_gram, u_id],
+    (error, results) => {
+      if (error) {
+        return res.status(500).send({ message: "Error updating user data" });
+      }
+      res.status(200).send({ message: "User data updated successfully." });
+    });
 });
 
 
@@ -260,25 +261,25 @@ app.put("/user", verifyJWT, (req, res) => {
 // 인가코드 => jwt 생성
 app.post("/auth", async (req, res, next) => {
   console.log('Code sent from client to server:', req.body);
-  try{
-      const { code } = req.body; //인가코드
-      const access_token = await getToken(code); //액세스토큰 발급 함수 호출
-      console.log('Access Token:', access_token);
+  try {
+    const { code } = req.body; //인가코드
+    const access_token = await getToken(code); //액세스토큰 발급 함수 호출
+    console.log('Access Token:', access_token);
 
-      const userArray = await getInfo(access_token); //사용자 정보 요청 함수 호출
-      console.log('User Info:', userArray);
+    const userArray = await getInfo(access_token); //사용자 정보 요청 함수 호출
+    console.log('User Info:', userArray);
 
-      const userJWT = await createJWT(userArray); //jwt 생성 함수 호출
-      console.log('JWT:', userJWT);
+    const userJWT = await createJWT(userArray); //jwt 생성 함수 호출
+    console.log('JWT:', userJWT);
 
-      return res.status(200).json(userJWT) //jwt 리턴(=>KakaoWebView.js sendCodeToServer res값)
-  } catch(e) {
-      console.error(e);
+    return res.status(200).json(userJWT) //jwt 리턴(=>KakaoWebView.js sendCodeToServer res값)
+  } catch (e) {
+    console.error(e);
 
-      const errorData = {
-          message: "Internal server error",
-      };
-      return res.status(500).json(errorData);       
+    const errorData = {
+      message: "Internal server error",
+    };
+    return res.status(500).json(errorData);
   }
 });
 
@@ -287,10 +288,10 @@ app.get("/auth/info", (req, res) => {
   const userId = req.query.user_id;
   const sql = `SELECT u_id FROM hufs.user WHERE u_id=${userId}`
   connection.query(sql, (err, result) => {
-    if(!err){
+    if (!err) {
       console.log('User ID search complete');
       res.status(201).send({ result });
-    } else{
+    } else {
       console.log('err');
       res.send(err);
     }
@@ -306,11 +307,11 @@ app.post("/auth/info", (req, res) => {
     VALUES (?, ?)
   `;
 
-  connection.query(sql, [userId, userName], (err, result)=>{
-    if(!err){
+  connection.query(sql, [userId, userName], (err, result) => {
+    if (!err) {
       console.log('successfully insert user info');
       res.status(201).send({ result });
-    } else{
+    } else {
       console.log('err');
       res.status(500).send({ message: "Error inserting user info" });
     }
@@ -330,16 +331,16 @@ app.post("/favorite", verifyJWT, (req, res) => {
     VALUES (?, ?)
   `;
 
-  connection.query(query, [user, drink], 
-  (error, results, fields) => {
-    if (error) {
-      console.error("Error inserting favorite data: ", error);
-      res.status(500).send({ message: "Error inserting favorite data" });
-      return;
-    }
-    console.log("Favorite data inserted successfully.");
-    res.status(201).send({ message: "Favorite data inserted successfully." });
-  });
+  connection.query(query, [user, drink],
+    (error, results, fields) => {
+      if (error) {
+        console.error("Error inserting favorite data: ", error);
+        res.status(500).send({ message: "Error inserting favorite data" });
+        return;
+      }
+      console.log("Favorite data inserted successfully.");
+      res.status(201).send({ message: "Favorite data inserted successfully." });
+    });
 });
 
 //즐겨찾기 불러오기
@@ -350,16 +351,16 @@ app.get("/favorite", verifyJWT, (req, res) => {
     SELECT drink FROM favorite WHERE user = ?
   `;
 
-  connection.query(query, [u_id], 
-  (error, results, fields) => {
-    if (error) {
-      console.error("Error retrieving favorite data: ", error);
-      res.status(500).send({ message: "Error retrieving favorite data" });
-      return;
-    }
-    //console.log("Favorite data retrieved successfully.");
-    res.status(200).send(results);
-  });
+  connection.query(query, [u_id],
+    (error, results, fields) => {
+      if (error) {
+        console.error("Error retrieving favorite data: ", error);
+        res.status(500).send({ message: "Error retrieving favorite data" });
+        return;
+      }
+      //console.log("Favorite data retrieved successfully.");
+      res.status(200).send(results);
+    });
 });
 
 //즐겨찾기 제거
@@ -372,20 +373,20 @@ app.delete("/favorite", verifyJWT, (req, res) => {
     WHERE user = ? AND drink = ?
   `;
 
-  connection.query(query, [user, drink], 
-  (error, results, fields) => {
-    if (error) {
-      console.error("Error deleting favorite data: ", error);
-      res.status(500).send({ message: "Error deleting favorite data" });
-      return;
-    }
-    if (results.affectedRows === 0) {
-      res.status(404).send({ message: "Favorite data not found." });
-      return;
-    }
-    console.log("Favorite data deleted successfully.");
-    res.status(200).send({ message: "Favorite data deleted successfully." });
-  });
+  connection.query(query, [user, drink],
+    (error, results, fields) => {
+      if (error) {
+        console.error("Error deleting favorite data: ", error);
+        res.status(500).send({ message: "Error deleting favorite data" });
+        return;
+      }
+      if (results.affectedRows === 0) {
+        res.status(404).send({ message: "Favorite data not found." });
+        return;
+      }
+      console.log("Favorite data deleted successfully.");
+      res.status(200).send({ message: "Favorite data deleted successfully." });
+    });
 });
 
 
@@ -401,16 +402,16 @@ app.post("/intake", verifyJWT, (req, res) => {
     VALUES (?, ?, ?, ?)
   `;
 
-  connection.query(query, [user, date, drink, time], 
-  (error, results) => {
-    if (error) {
-      console.error("Error inserting intake data: ", error);
-      res.status(500).send({ message: "Error inserting intake data" });
-      return;
-    }
-    console.log("Intake data inserted successfully.");
-    res.status(201).send({ message: "Intake data inserted successfully." });
-  });
+  connection.query(query, [user, date, drink, time],
+    (error, results) => {
+      if (error) {
+        console.error("Error inserting intake data: ", error);
+        res.status(500).send({ message: "Error inserting intake data" });
+        return;
+      }
+      console.log("Intake data inserted successfully.");
+      res.status(201).send({ message: "Intake data inserted successfully." });
+    });
 });
 
 // 음료 섭취 조회
@@ -421,15 +422,15 @@ app.get("/intake", verifyJWT, (req, res) => {
     SELECT * FROM intake WHERE user = ?
   `;
 
-  connection.query(query, [user], 
-  (error, results) => {
-    if (error) {
-      console.error("Error retrieving intake data: ", error);
-      res.status(500).send({ message: "Error retrieving intake data" });
-      return;
-    }
-    res.status(200).send(results);
-  });
+  connection.query(query, [user],
+    (error, results) => {
+      if (error) {
+        console.error("Error retrieving intake data: ", error);
+        res.status(500).send({ message: "Error retrieving intake data" });
+        return;
+      }
+      res.status(200).send(results);
+    });
 });
 
 //일일 섭취 기록 조회
@@ -445,44 +446,78 @@ app.get("/intake/today", verifyJWT, (req, res) => {
     WHERE user = ? AND DATE(date) = ?
   `;
 
-  connection.query(query, [u_id, today], 
-  (error, results) => {
-    if (error) {
-      console.error("Error retrieving today's intake data: ", error);
-      res.status(500).send({ message: "Error retrieving today's intake data" });
-      return;
-    }
-    res.status(200).send(results);
-  });
+  connection.query(query, [u_id, today],
+    (error, results) => {
+      if (error) {
+        console.error("Error retrieving today's intake data: ", error);
+        res.status(500).send({ message: "Error retrieving today's intake data" });
+        return;
+      }
+      res.status(200).send(results);
+    });
 });
 
 //주간 섭취 기록 조회
-app.get("/intake/week", verifyJWT, (req, res) => {
+app.get("/intake/weekSugar", verifyJWT, (req, res) => {
   const u_id = req.u_id; // JWT 미들웨어에서 추출된 사용자 ID
-
-  // 현재 날짜와 주의 첫째 날짜를 구합니다.
-  const today = new Date();
-  const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-
-  // YYYY-MM-DD 형식으로 날짜 포매팅
-  const formattedFirstDayOfWeek = firstDayOfWeek.toISOString().slice(0, 10);
 
   // 데이터베이스 쿼리
   const query = `
-    SELECT * FROM intake 
-    WHERE user = ? AND DATE(date) >= ?
+    SELECT
+    days.day,
+    COALESCE(SUM(d.sugar), 0) as total_sugar
+    FROM (
+      SELECT 'Mon' as day
+      UNION ALL SELECT 'Tue'
+      UNION ALL SELECT 'Wed'
+      UNION ALL SELECT 'Thu'
+      UNION ALL SELECT 'Fri'
+      UNION ALL SELECT 'Sat'
+      UNION ALL SELECT 'Sun'
+    ) days
+    LEFT JOIN intake i ON DATE_FORMAT(i.date, '%a') = days.day AND i.user = ? AND i.date >= DATE_SUB(CURRENT_DATE, INTERVAL 1 WEEK)
+    LEFT JOIN drink d ON i.drink = d.d_id
+    GROUP BY days.day
+    ORDER BY FIELD(days.day, 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun');  
   `;
 
-  connection.query(query, [u_id, formattedFirstDayOfWeek], 
-  (error, results) => {
-    if (error) {
-      console.error("Error retrieving week's intake data: ", error);
-      res.status(500).send({ message: "Error retrieving week's intake data" });
-      return;
-    }
-    res.status(200).send(results);
-  });
+  connection.query(query, [u_id],
+    (error, results) => {
+      if (error) {
+        console.error("Error retrieving week's sugar intake data: ", error);
+        res.status(500).send({ message: "Error retrieving week's sugar intake data" });
+        return;
+      }
+      res.status(200).send(results);
+    });
 });
+
+// 음료 섭취 데이터 삭제
+app.delete("/intake", verifyJWT, (req, res) => {
+  const { date, drink, time } = req.body;
+  const userId = req.u_id;
+
+  const query = `
+    DELETE FROM intake 
+    WHERE user = ? AND date = ? AND drink = ? AND time = ?
+  `;
+
+  connection.query(query, [userId, date, drink, time],
+    (error, results) => {
+      if (error) {
+        console.error("Error deleting intake data: ", error);
+        res.status(500).send({ message: "Error deleting intake data" });
+        return;
+      }
+      if (results.affectedRows === 0) {
+        res.status(404).send({ message: "Intake data not found or already deleted." });
+        return;
+      }
+      console.log("Intake data deleted successfully.");
+      res.status(200).send({ message: "Intake data deleted successfully." });
+    });
+});
+
 
 
 

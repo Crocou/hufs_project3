@@ -5,7 +5,7 @@ const axios = require("axios");
 //kakao 로그인 -> 유저 리스트 확인
 const getUserById = async (u_id) => {
     try{
-        const res = await axios.get('http://10.10.1.99:4000/auth/info', {
+        const res = await axios.get('http://172.30.1.95:4000/auth/info', {
             params: {
                 'user_id': u_id
             }
@@ -33,7 +33,7 @@ const getUserById = async (u_id) => {
 const signUp = async (u_id, u_name) => {
     console.log(u_id, u_name);
     try{
-        const req = await axios.post('http://10.10.1.99:4000/auth/info', {
+        const req = await axios.post('http://172.30.1.95:4000/auth/info', {
             user_id: u_id,
             user_name: u_name,
         }).then((response)=>{
