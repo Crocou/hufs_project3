@@ -6,7 +6,6 @@ import CircularProgress from '../components/CircularProgress';
 import BasicProgress from '../components/BasicProgress';
 import WeeklyProgress from '../components/WeeklyProgress';
 import { getDrinkDataById, getTodayIntake, deleteIntake } from '../service/apiService';
-import { eventEmitter } from '../eventEmitter';
 import IntakeModal from '../components/IntakeModal'; // 여기에 모달 컴포넌트 임포트
 
 
@@ -104,11 +103,6 @@ export function ReportScreen({ }) {
   useEffect(() => {
     refreshData();
     fetchNutritionData();
-    eventEmitter.on('intakeUpdated', refreshData);
-
-    return () => {
-      eventEmitter.off('intakeUpdated', refreshData);
-    };
   }, [isFocused]);
 
   const windowWidth = Dimensions.get('window').width;

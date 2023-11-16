@@ -4,7 +4,6 @@ import { AntDesign } from '@expo/vector-icons';
 import { FlatList, TouchableWithoutFeedback } from 'react-native';
 import { getDrinkData, getFav, addFav, removeFav, addIntake } from "../service/apiService";
 import SavedInfoFrame from "./SavedInfoFrame";
-import { eventEmitter } from '../eventEmitter';
 // 영양소 이름과 한국어 매핑 정보
 const nutritionMapping = {
   sugar: "당류",
