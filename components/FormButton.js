@@ -1,7 +1,11 @@
 import { Text, Flex, Button, Modal, FormControl, Input } from "native-base";
 import { useState } from "react";
+import { Dimensions } from "react-native";
 import { AntDesign } from '@expo/vector-icons';
 import { addCustomDrink } from '../service/apiService'
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 // 영양 정보 입력 필드 컴포넌트
 const NutritionInfoInput = ({ label, value, onChangeText }) => (
@@ -111,7 +115,7 @@ export const FormButton = () => {
       </Button>
 
       <Modal isOpen={showModal} onClose={handleModalClose}>
-        <Modal.Content maxWidth="400px">
+        <Modal.Content width={windowWidth * 0.9} height={windowHeight * 0.48} maxWidth="400px" >
           <Modal.CloseButton onPress={handleModalClose} />
           <Modal.Body>
             <FormControl>
