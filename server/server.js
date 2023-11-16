@@ -436,13 +436,12 @@ app.get("/intake", verifyJWT, (req, res) => {
 app.get("/intake/today", verifyJWT, (req, res) => {
   const u_id = req.u_id; // JWT 미들웨어에서 추출된 사용자 ID
 
-  // 현재 날짜를 YYYY-MM-DD 형식으로 얻습니다.
   const today = new Date().toISOString().slice(0, 10);
 
-  // 데이터베이스 쿼리
   const query = `
-    SELECT * FROM intake 
-    WHERE user = ? AND DATE(date) = ?
+    SELECT i.*, d.* FROM intake i
+    JOIN drink d ON i.drink = d.d_id
+    WHERE i.user = ? AND DATE(i.date) = ?
   `;
 
   connection.query(query, [u_id, today],

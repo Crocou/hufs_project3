@@ -28,16 +28,17 @@ const WeeklyProgress = () => {
     }, []);
 
     return (
-        <View style={{justifyContent: 'center', alignItems: 'center', padding: 10}}>
+        <View style={{justifyContent: 'center', alignItems: 'center', padding: 10, paddingTop: 20}}>
         <BarChart
             yAxisThickness={0}
             xAxisThickness={0}
             data={barData}
-            frontColor={'#9747FF'}
+            frontColor={'#B09FFF'}
             xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center', fontSize: 10}}
             yAxisTextStyle={{ color: 'lightgray', fontSize: 10}}
-            barWidth={20}
+            barWidth={18}
             roundedTop
+            roundedBottom
             hideRules
         /></View>
     );
