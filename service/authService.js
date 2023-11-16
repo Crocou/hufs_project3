@@ -12,7 +12,6 @@ export async function saveJWT(token) {
 export async function getJWT() {
     try {
         const token = await SecureStore.getItemAsync('userToken');
-        console.log("Token retrieved:", token);  // 이 부분을 추가
         return token;
     } catch (error) {
         console.error('토큰 불러오기 실패', error);

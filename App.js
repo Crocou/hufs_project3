@@ -141,7 +141,7 @@ export default function App() {
         // 사용자 ID가 있을 경우 서버에 확인 요청
         if (extractedUserId) {
           try {
-            const response = await fetch(`http://172.30.1.95:4000/auth/info?user_id=${extractedUserId}`);
+            const response = await fetch(`http://172.30.1.11:4000/auth/info?user_id=${extractedUserId}`);
             const data = await response.json();
             console.log('Server response:', data);
 

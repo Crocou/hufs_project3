@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { getWeekIntake } from '../service/apiService';
 import { Dimensions } from 'react-native'; // Dimensions를 임포트합니다.
@@ -27,6 +28,7 @@ const WeeklyProgress = () => {
     }, []);
 
     return (
+        <View style={{justifyContent: 'center', alignItems: 'center', padding: 10}}>
         <BarChart
             yAxisThickness={0}
             xAxisThickness={0}
@@ -34,11 +36,10 @@ const WeeklyProgress = () => {
             frontColor={'#9747FF'}
             xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center', fontSize: 10}}
             yAxisTextStyle={{ color: 'lightgray', fontSize: 10}}
-            barWidth={22}
+            barWidth={20}
             roundedTop
             hideRules
-            style={{ width: screenWidth - 40 }}
-        />
+        /></View>
     );
 };
 

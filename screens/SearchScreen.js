@@ -5,13 +5,14 @@ import { TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } fr
 import { Center, VStack, Input, View, HStack, InputRightElement } from "native-base";
 import { FormButton } from '../components/FormButton';
 import SavedInfo from '../components/SavedInfo';
+import SavedInfoFrame from '../components/SavedInfoFrame';
 
 function SearchBar({ onSearchChange }) {
     return (
         <View w="100%" alignItems="center" space={5} alignSelf="center">
             <HStack width="80%" space={3} alignItems="center">
                 <Input
-                    placeholder="찾으시는 음료를 검색해 보세요" 
+                    placeholder="찾으시는 음료를 검색해 보세요"
                     borderRadius="10"
                     py="2"
                     px="1"
@@ -26,6 +27,19 @@ function SearchBar({ onSearchChange }) {
 
 export function SearchScreen({ navigation }) {
     const [searchTerm, setSearchTerm] = useState("");
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedDrink, setSelectedDrink] = useState(null);
+
+    const handleItemSelect = (itemData) => {
+        setSelectedDrink(itemData);
+        setModalVisible(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalVisible(false);
+        setSelectedDrink(null);
+    };
+
 
     React.useLayoutEffect(() => {
         navigation.setOptions({
@@ -42,9 +56,17 @@ export function SearchScreen({ navigation }) {
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false} style={{ flex: 1 }}>
                 <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', paddingTop: 10 }}>
                     <SearchBar onSearchChange={(text) => setSearchTerm(text)} />
-                    <SavedInfo searchTerm={searchTerm} />
+                    <SavedInfo searchTerm={searchTerm} onSelect={handleItemSelect} />
+                    {selectedDrink && (
+                        <SavedInfoFrame
+                            visible={modalVisible}
+                            onClose={handleCloseModal}
+                            drinkInfo={selectedDrink}
+                        />
+                    )}
                 </View>
             </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
     );
 }
+
