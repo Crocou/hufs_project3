@@ -163,6 +163,7 @@ export function ReportScreen({ }) {
   return (
     <NativeBaseProvider>
       <View style={dynamicStyles.container}>
+        
         <View style={dynamicStyles.todayText}>
           <View style={dynamicStyles.textContainer}>
             <Text bold mb="0.5">Today</Text>
