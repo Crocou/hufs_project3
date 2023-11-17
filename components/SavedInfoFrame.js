@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Dimensions } from 'react-native';
-import { Text, Modal, Flex, Button, View, Image } from 'native-base';
+import { Text, Modal, Flex, Button, View, Image, useToast} from 'native-base';
+
 import { addIntake } from "../service/apiService";
 import { RFValue } from 'react-native-responsive-fontsize';
 import perfect from '../assets/perfect.png';
@@ -23,6 +24,8 @@ const SavedInfoFrame = ({ visible, onClose, drinkInfo }) => {
     'F': warning
   }; 
   const gradeImage = gradeImages[drinkInfo.grade];
+ 
+  const toast = useToast();
 
   const handleAddIntake = async () => {
     try {
@@ -34,6 +37,7 @@ const SavedInfoFrame = ({ visible, onClose, drinkInfo }) => {
         time: currentDate.getHours() * 100 + currentDate.getMinutes()
       };
       await addIntake(intakeData);
+      toast.show({ title: "섭취 목록 추가 완료", duration: 100, placement: "top" });
       console.log("Intake data added successfully.");
       onClose(); // 모달을 닫습니다.
     } catch (error) {

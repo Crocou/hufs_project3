@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Text, Flex, Box } from "native-base";
+import { Text, Flex, Box, useToast } from "native-base";
 import { AntDesign } from '@expo/vector-icons';
 import { FlatList, TouchableWithoutFeedback } from 'react-native';
 import { getDrinkData, getFav, addFav, removeFav, addIntake } from "../service/apiService";
@@ -14,6 +14,7 @@ const nutritionMapping = {
 
 // 개별 저장 정보 항목 컴포넌트
 const SavedInfoItem = ({ data, onSelect }) => {
+  const toast = useToast();
   const [isStarred, setIsStarred] = useState(false); // 즐겨찾기 여부 상태
   const formatValue = value => value % 1 === 0 ? Math.floor(value) : value;
   useEffect(() => {
@@ -33,8 +34,10 @@ const SavedInfoItem = ({ data, onSelect }) => {
     try {
       if (isStarred) {
         await removeFav(data.id);
+        toast.show({ title: "즐겨찾기 해제 완료", duration: 100, placement: "top" });
       } else {
         await addFav(data.id);
+        toast.show({ title: "즐겨찾기 등록 완료", duration: 100, placement: "top" });
       }
       setIsStarred(!isStarred); // 상태 반전
     } catch (error) {
@@ -54,7 +57,7 @@ const SavedInfoItem = ({ data, onSelect }) => {
       };
       await addIntake(intakeData);
       console.log("Intake data added successfully.");
-      eventEmitter.emit('intakeAdded');
+      toast.show({ title: "섭취 목록 추가 완료", duration: 100, placement: "top"});
     } catch (error) {
       console.error("Error adding intake data:", error);
     }

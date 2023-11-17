@@ -6,7 +6,7 @@ const Header = () => {
   return <Text style={styles.header}>프로필 작성</Text>;
 };
 
-const RecommendationText = ({ sugarGrams, onSugarGramsChange }) => {
+const RecommendationText = ({ sugarGrams, onSugarGramsChange, userName }) => {
   const inputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -43,7 +43,7 @@ const RecommendationText = ({ sugarGrams, onSugarGramsChange }) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.recommendationContainer}>
-        <Text style={styles.text1}>~님의</Text>
+        <Text style={styles.text1}>{userName}님의</Text>
         <Text style={styles.text1}>건강을 위해 추천드리는 당 섭취량은</Text>
         <Text style={styles.text2}>일일</Text>
         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
@@ -91,7 +91,7 @@ const Button = ({ handleSetProfile }) => {
 };
 
 const LoginProfileScreen2 = ({ route, navigation }) => {
-  const userData = route.params.userData;
+  const { userData, userName } = route.params;
   const handleSugarGramsChange = (newSugarGrams) => {
     userData.u_sugar_gram = parseInt(newSugarGrams, 10);  //당류 편집시 업데이트
   };
@@ -120,6 +120,7 @@ const LoginProfileScreen2 = ({ route, navigation }) => {
           <RecommendationText
             sugarGrams={route.params.sugarGrams}
             onSugarGramsChange={handleSugarGramsChange}
+            userName={userName}
           />
           <Text style={styles.text3}>이 수치는 프로필 화면에서 수정하실 수 있습니다</Text>
           <Button handleSetProfile={handleSetProfile} />

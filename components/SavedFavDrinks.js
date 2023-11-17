@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Text, Flex, Box } from "native-base";
+import { Text, Flex, Box, useToast } from "native-base";
 import { AntDesign } from '@expo/vector-icons';
 import { FlatList, TouchableWithoutFeedback } from 'react-native';
 import { getDrinkData, getFav, addFav, removeFav, addIntake } from "../service/apiService";
@@ -33,8 +33,10 @@ const SavedFavItem = ({ data, onSelect }) => {
     try {
       if (isStarred) {
         await removeFav(data.id);
+        toast.show({ title: "즐겨찾기 해제 완료", duration: 100, placement: "top" });
       } else {
         await addFav(data.id);
+        toast.show({ title: "즐겨찾기 등록 완료", duration: 100, placement: "top" });
       }
       setIsStarred(!isStarred); // 상태 반전
     } catch (error) {
@@ -53,8 +55,8 @@ const SavedFavItem = ({ data, onSelect }) => {
         time: currentDate.getHours() * 100 + currentDate.getMinutes() // HHMM 형식으로 변환 (이 부분은 필요에 따라 수정하실 수 있습니다.)
       };
       await addIntake(intakeData);
+      toast.show({ title: "섭취 목록 추가 완료", duration: 100, placement: "top"});
       console.log("Intake data added successfully.");
-      eventEmitter.emit('intakeAdded');
     } catch (error) {
       console.error("Error adding intake data:", error);
     }
@@ -109,6 +111,7 @@ const SavedFavItem = ({ data, onSelect }) => {
 
 // 저장된 음료 정보 전체 목록을 관리하는 컴포넌트
 const SavedFav = ({ searchTerm, onSelect }) => {
+  const toast = useToast();
   const [savedData, setSavedData] = useState([]); // 저장된 음료 데이터 상태
 
   //즐겨찾기 음료 데이터 불러오기

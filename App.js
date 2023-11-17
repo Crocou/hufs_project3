@@ -68,7 +68,7 @@ function MyTabs() {
           )
         }}
       />
-      
+
       <Tab.Screen
         name="보관함"
         component={BookmarkScreen}
@@ -93,7 +93,7 @@ function MyTabs() {
 }
 
 // 앱의 메인 네비게이션 로직을 담당하는 컴포넌트
-function AppNavigator({ userId }) {
+function AppNavigator({ userId, userName }) {
   const [isAuthenticated, setIsAuthenticated] = useState(!!userId); // 사용자 인증 여부 상태
 
   useEffect(() => {
@@ -108,7 +108,7 @@ function AppNavigator({ userId }) {
     <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "MainTabs"}>
       <Stack.Screen name="Kakao" component={Kakao} />
       <Stack.Screen name="KakaoWebView" component={KakaoWebView} />
-      <Stack.Screen name="LoginProfile" component={LoginProfileScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="LoginProfile" component={LoginProfileScreen} initialParams={{ userName: userName }} />
       <Stack.Screen name="LoginProfile2" component={LoginProfileScreen2} options={{ headerShown: false }} />
       <Stack.Screen name="MainTabs" component={MyTabs} options={{ headerShown: false }} />
     </Stack.Navigator>
@@ -117,6 +117,7 @@ function AppNavigator({ userId }) {
 
 export default function App() {
   const [userId, setUserId] = useState(null);
+  const [userName, setUserName] = useState(null);
 
   useEffect(() => {
     // JWT를 확인하여 사용자 인증 처리
@@ -134,9 +135,11 @@ export default function App() {
           return;
         }
 
-        // 토큰에서 사용자 ID 추출
-        const extractedUserId = decodedToken && decodedToken.userId && decodedToken.userId[0] && decodedToken.userId[0].u_id;
+        // 토큰에서 사용자 ID와 이름 추출
+        const extractedUserId = decodedToken?.userId?.[0]?.u_id;
+        const extractedUserName = decodedToken?.userId?.[0]?.u_name;
         console.log('Extracted user_id from JWT:', extractedUserId);
+        console.log('Extracted user_name from JWT:', extractedUserName);
 
         // 사용자 ID가 있을 경우 서버에 확인 요청
         if (extractedUserId) {
@@ -148,6 +151,7 @@ export default function App() {
             if (data.result && data.result.length > 0) {
               console.log('User exists in the database');
               setUserId(extractedUserId); // userId 상태 설정
+              setUserName(extractedUserName); // userName 상태 설정
             } else {
               console.log('User not found in the database');
             }
@@ -166,7 +170,7 @@ export default function App() {
   return (
     <NativeBaseProvider>
       <NavigationContainer>
-        <AppNavigator userId={userId} />
+        <AppNavigator userId={userId} userName={userName} />
       </NavigationContainer>
     </NativeBaseProvider>
   );

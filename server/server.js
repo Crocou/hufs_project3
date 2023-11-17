@@ -285,7 +285,7 @@ app.post("/auth", async (req, res, next) => {
 // 유저 등록 유무 확인
 app.get("/auth/info", (req, res) => {
   const userId = req.query.user_id;
-  const sql = `SELECT u_id FROM hufs.user WHERE u_id=${userId}`
+  const sql = `SELECT u_id, u_name FROM hufs.user WHERE u_id=${userId}`
   connection.query(sql, (err, result) => {
     if (!err) {
       console.log('User ID search complete');

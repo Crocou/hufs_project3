@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
-import { NativeBaseProvider, Text } from 'native-base';
+import { NativeBaseProvider, Text, useToast } from 'native-base';
 import CircularProgress from '../components/CircularProgress';
 import BasicProgress from '../components/BasicProgress';
 import WeeklyProgress from '../components/WeeklyProgress';
@@ -23,6 +23,7 @@ function formatNutrientValue(value) {
 }
 
 export function ReportScreen({ }) {
+  const toast = useToast();
   const isFocused = useIsFocused();
   const [intakes, setIntakes] = useState([]); // 오늘 섭취한 음료 데이터를 저장할 상태
   const [nutritionData, setNutritionData] = useState({
@@ -90,6 +91,8 @@ export function ReportScreen({ }) {
       console.log("Deleting intake item:", intakeData);
 
       await deleteIntake(intakeData);
+
+        toast.show({ title: "섭취 목록 변경 완료", duration: 100, placement: "top" });
 
       // 로컬 상태 업데이트
       setIntakes(currentIntakes =>

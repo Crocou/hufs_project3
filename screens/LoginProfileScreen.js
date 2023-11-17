@@ -13,13 +13,18 @@ const generateRandomToken = () => {
 const token = generateRandomToken(); 
 //
 
-const LoginProfileScreen = ({ navigation }) => {
+const LoginProfileScreen = ({ navigation, route }) => {
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [selectedGender, setSelectedGender] = React.useState(null);
   const [activityLevel, setActivityLevel] = useState(null);
   const [showYearWarning, setShowYearWarning] = useState(false);
+  const { userName } = route.params;
+
+  useEffect(() => {
+    console.log("userName : ", userName);
+  }, [userName]);
 
   const onGenderToggle = (gender) => {
     setSelectedGender(gender);
@@ -35,7 +40,7 @@ const LoginProfileScreen = ({ navigation }) => {
       setShowYearWarning(false);
     }
     setBirthYear(value);
-};
+  };
 
   const calculateSugarIntake = () => {
     const heightInMeters = parseFloat(height) / 100;
@@ -58,6 +63,7 @@ const LoginProfileScreen = ({ navigation }) => {
       grams: sugarIntakeGrams
     };
   };
+  
 
   const handleSetProfile = () => {
     const sugar = calculateSugarIntake();
@@ -67,6 +73,7 @@ const LoginProfileScreen = ({ navigation }) => {
     console.log("몸무게:", weight);
     console.log("태어난 연도:", birthYear);
     console.log("성별:", selectedGender);
+    console.log("userName : ", userName);
   
     const currentYear = new Date().getFullYear();
     const age = currentYear - parseInt(birthYear);
@@ -81,7 +88,7 @@ const LoginProfileScreen = ({ navigation }) => {
       u_sugar_gram: sugar.grams
     };
   
-    navigation.navigate('LoginProfile2', { sugarGrams: sugar.grams, userData: userData });
+    navigation.navigate('LoginProfile2', { sugarGrams: sugar.grams, userData: userData, userName: userName });
   };
   
 

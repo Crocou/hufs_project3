@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Dimensions } from 'react-native';
 import { NativeBaseProvider, Box, View, Text } from 'native-base';
+import { useIsFocused } from '@react-navigation/native';
+
 import CircularProgress from '../components/CircularProgress';
 import BasicProgress from '../components/BasicProgress';
 import SavedFav from '../components/SavedFavDrinks';
 import { getDrinkDataById, getTodayIntake } from '../service/apiService';
-import IntakeModal from '../components/IntakeModal'; 
+import IntakeModal from '../components/IntakeModal';
 
 function formatNutrientValue(value) {
     // 앞 자리 0을 제거하고 숫자로 변환합니다.
@@ -22,61 +24,63 @@ function formatNutrientValue(value) {
 
 export function HomeScreen({ }) {
     const windowWidth = Dimensions.get('window').width;
-   
+
     const dynamicStyles = StyleSheet.create({
         container: {
-          flex: 1,
-          backgroundColor: '#FFF',
-          alignItems: 'center',
-          padding: 10,
+            flex: 1,
+            backgroundColor: '#FFF',
+            alignItems: 'center',
+            padding: 10,
         },
         todayText: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          width: windowWidth - 55,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            width: windowWidth - 55,
         },
         textContainer: {
-          justifyContent: 'flex-end'
+            justifyContent: 'flex-end'
         },
         circularProgressBox: {
-          flexDirection: 'row',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          borderWidth: 1,
-          borderColor: '#E8E8E8',
-          borderRadius: 10,
-          padding: 10,
-          backgroundColor: '#FFF',
-          width: windowWidth - 50,
-          marginBottom: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: '#E8E8E8',
+            borderRadius: 10,
+            padding: 10,
+            backgroundColor: '#FFF',
+            width: windowWidth - 50,
+            marginBottom: 20,
         },
         basicProgressContainer: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          width: windowWidth - 50,
-          marginBottom: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: windowWidth - 50,
+            marginBottom: 20,
         },
         weekly: {
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderWidth: 1,
-          borderColor: '#E8E8E8',
-          borderRadius: 10,
-          backgroundColor: '#FFF',
-          marginBottom: 20,
-          width: windowWidth - 50,
-          paddingRight: 10
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: '#E8E8E8',
+            borderRadius: 10,
+            backgroundColor: '#FFF',
+            marginBottom: 20,
+            width: windowWidth - 50,
+            paddingRight: 10
         }
-      });
+    });
+
+    const isFocused = useIsFocused();
 
     const [isModalVisible, setModalVisible] = useState(false);
 
     const toggleModal = () => {
-      setModalVisible(!isModalVisible);
+        setModalVisible(!isModalVisible);
     };
 
-    const [intakes, setIntakes] = useState([]); 
+    const [intakes, setIntakes] = useState([]);
 
     const [nutritionData, setNutritionData] = useState({
         sugar: 0,
@@ -116,32 +120,46 @@ export function HomeScreen({ }) {
 
     const deleteIntakeItem = async (intake) => {
         try {
-          // Date 객체 생성
-          const dateObj = new Date(intake.date);
-    
-          // 날짜를 'YYYY-MM-DD' 형식으로 포맷팅
-          const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-    
-          const intakeData = {
-            ...intake,
-            date: formattedDate
-          };
-          console.log("Deleting intake item:", intakeData);
-    
-          await deleteIntake(intakeData);
-    
-          // 로컬 상태 업데이트
-          setIntakes(currentIntakes =>
-            currentIntakes.filter(i => !(i.date === intake.date && i.drink === intake.drink && i.time === intake.time))
-          );
+            // Date 객체 생성
+            const dateObj = new Date(intake.date);
+
+            // 날짜를 'YYYY-MM-DD' 형식으로 포맷팅
+            const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+
+            const intakeData = {
+                ...intake,
+                date: formattedDate
+            };
+            console.log("Deleting intake item:", intakeData);
+
+            await deleteIntake(intakeData);
+
+            // 로컬 상태 업데이트
+            setIntakes(currentIntakes =>
+                currentIntakes.filter(i => !(i.date === intake.date && i.drink === intake.drink && i.time === intake.time))
+            );
         } catch (error) {
-          console.error("음료 삭제 실패", error);
+            console.error("음료 삭제 실패", error);
+        }
+    };
+
+    const refreshData = async () => {
+        try {
+          // 현재 날짜에 해당하는 섭취 내역 가져오기
+          const intakes = await getTodayIntake();
+          setIntakes(intakes);
+    
+          // 여기에 영양 데이터 새로고침 로직 추가
+          // 예: 영양소 합계 계산 및 상태 업데이트
+        } catch (error) {
+          console.error("데이터 불러오기 실패:", error);
         }
     };
 
     useEffect(() => {
+        refreshData();
         fetchNutritionData();
-    }, []);
+    }, [isFocused]);
 
     return (
         <NativeBaseProvider>
