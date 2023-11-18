@@ -163,12 +163,9 @@ const styles = StyleSheet.create({
   text3: {
     fontSize: 12,
     textAlign: 'center',
-    marginTop: 180,
+    position: 'absolute', 
+    bottom: 95, 
     color: 'lightgray'
-  },
-  gramText: {
-    fontSize: 70,
-    fontWeight: 'bold',
   },
   submitButton: {
     width: '60%',
@@ -177,8 +174,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 30,
-    marginTop: 15,
+    position: 'absolute',
+    bottom: 40, 
+    left: '20%',
+    right: '20%',
   },
+  gramText: {
+    fontSize: 70,
+    fontWeight: 'bold',
+  },
+  
   submitButtonText: {
     color: 'white',
     fontSize: 16
