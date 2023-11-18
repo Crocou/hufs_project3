@@ -106,7 +106,7 @@ function AppNavigator({ userId, userName }) {
   // 사용자 인증 여부에 따라 초기 화면 설정
   return (
     <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "Kakao"}>
-      <Stack.Screen name="Kakao" component={Kakao} />
+      <Stack.Screen name="Kakao" component={Kakao} options={{ headerShown: false }}/>
       <Stack.Screen name="KakaoWebView" component={KakaoWebView} />
       <Stack.Screen name="LoginProfile" component={LoginProfileScreen} initialParams={{ userName: userName }} />
       <Stack.Screen name="LoginProfile2" component={LoginProfileScreen2} options={{ headerShown: false }} />
@@ -144,7 +144,7 @@ export default function App() {
         // 사용자 ID가 있을 경우 서버에 확인 요청
         if (extractedUserId) {
           try {
-            const response = await fetch(`http://172.30.1.11:4000/auth/info?user_id=${extractedUserId}`);
+            const response = await fetch(`http://10.10.0.204:4000/auth/info?user_id=${extractedUserId}`);
             const data = await response.json();
             console.log('Server response:', data);
 

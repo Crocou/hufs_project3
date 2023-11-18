@@ -16,15 +16,19 @@ const Kakao = () => {
         
     //};
     return (
-        <View style={styles.container}>
-          <TouchableOpacity onPress={() => navigation.navigate('KakaoWebView')}>
-            <Image
-              source={{ uri: 'https://developers.kakao.com/tool/resource/static/img/button/login/full/ko/kakao_login_medium_narrow.png' }}
-              style={styles.imageStyle}
-            />
+      <View style={styles.container}>
+          <Image
+              source={require('./assets/coffee.jpg')} // assets 폴더의 실제 경로로 대체해주세요.
+              style={styles.coffeeImageStyle}
+          />
+          <TouchableOpacity onPress={() => navigation.navigate('KakaoWebView')} >
+              <Image
+                  source={{ uri: 'https://developers.kakao.com/tool/resource/static/img/button/login/full/ko/kakao_login_medium_narrow.png' }}
+                  style={styles.kakaoLoginImageStyle}
+              />
           </TouchableOpacity>
-        </View>
-    );
+      </View>
+  );
 }
 
 
@@ -33,20 +37,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: 'white', // 배경색을 설정하여 이미지 사이의 여백이 흰색이 되도록 설정
   },
-  imageStyle: {
-    width: 200,
-    height: 200,
-    resizeMode: 'contain',
+  coffeeImageStyle: {
+    width: 300, // 적당한 크기로 설정
+    height: 300, // 적당한 크기로 설정
+    resizeMode: 'contain', // 이미지 비율을 유지하면서 컨테이너에 맞춤
+    marginBottom: 150, // '카카오 로그인' 이미지와의 간격 설정
   },
-});
-
-const styles2 = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
+  kakaoLoginImageStyle: {
+    width: 200, // 로그인 이미지 크기 설정
+    height: 45, // 로그인 이미지 높이 설정
+    resizeMode: 'contain', // 이미지 비율을 유지하면서 컨테이너에 맞춤
+  }
 });
 
 
