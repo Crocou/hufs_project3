@@ -1,7 +1,11 @@
-import { Text, Flex, Button, Modal, FormControl, Input } from "native-base";
+import { Text, Flex, Button, Modal, FormControl, Input, useToast } from "native-base";
 import { useState } from "react";
+import { Dimensions } from "react-native";
 import { AntDesign } from '@expo/vector-icons';
 import { addCustomDrink } from '../service/apiService'
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 // 영양 정보 입력 필드 컴포넌트
 const NutritionInfoInput = ({ label, value, onChangeText }) => (
@@ -22,6 +26,7 @@ const NutritionInfoInput = ({ label, value, onChangeText }) => (
 
 // 폼 버튼 및 모달 관리 컴포넌트
 export const FormButton = () => {
+  const toast = useToast();
   const [showModal, setShowModal] = useState(false); // 모달 보이기/숨기기
   const [warningVisible, setWarningVisible] = useState(false); // 경고 메시지 표시
 
@@ -90,6 +95,7 @@ export const FormButton = () => {
       try {
         await addCustomDrink(drinkData);
         console.log("음료 정보가 성공적으로 등록되었습니다.");
+        toast.show({ title: "음료 추가 완료" });
       } catch (error) {
         console.error("음료 정보 등록 중 오류가 발생했습니다.", error);
       }
@@ -111,7 +117,7 @@ export const FormButton = () => {
       </Button>
 
       <Modal isOpen={showModal} onClose={handleModalClose}>
-        <Modal.Content maxWidth="400px">
+        <Modal.Content width={windowWidth * 0.9} height={windowHeight * 0.48} maxWidth="400px" >
           <Modal.CloseButton onPress={handleModalClose} />
           <Modal.Body>
             <FormControl>

@@ -68,7 +68,7 @@ function MyTabs() {
           )
         }}
       />
-      
+
       <Tab.Screen
         name="보관함"
         component={BookmarkScreen}
@@ -139,11 +139,12 @@ export default function App() {
         const extractedUserId = decodedToken && decodedToken.userId && decodedToken.userId[0] && decodedToken.userId[0].u_id;
         setUserName(decodedToken.userId[0].u_name);
         console.log('Extracted user_id from JWT:', extractedUserId);
+        console.log('Extracted user_name from JWT:', extractedUserName);
 
         // 사용자 ID가 있을 경우 서버에 확인 요청
         if (extractedUserId) {
           try {
-            const response = await fetch(`http://10.10.2.117:4000/auth/info?user_id=${extractedUserId}`);
+            const response = await fetch(`http://172.30.1.11:4000/auth/info?user_id=${extractedUserId}`);
             const data = await response.json();
             console.log('Server response:', data);
 

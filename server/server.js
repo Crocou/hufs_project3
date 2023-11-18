@@ -87,7 +87,6 @@ app.get('/', (req, res) => {
 
 
 
-
 // 2. 음료 목록
 app.get("/drink", (req, res) => {
   connection.query("SELECT * FROM hufs.drink", (error, results, fields) => {
@@ -286,7 +285,7 @@ app.post("/auth", async (req, res, next) => {
 // 유저 등록 유무 확인
 app.get("/auth/info", (req, res) => {
   const userId = req.query.user_id;
-  const sql = `SELECT u_id FROM hufs.user WHERE u_id=${userId}`
+  const sql = `SELECT u_id, u_name FROM hufs.user WHERE u_id=${userId}`
   connection.query(sql, (err, result) => {
     if (!err) {
       console.log('User ID search complete');
@@ -437,13 +436,12 @@ app.get("/intake", verifyJWT, (req, res) => {
 app.get("/intake/today", verifyJWT, (req, res) => {
   const u_id = req.u_id; // JWT 미들웨어에서 추출된 사용자 ID
 
-  // 현재 날짜를 YYYY-MM-DD 형식으로 얻습니다.
   const today = new Date().toISOString().slice(0, 10);
 
-  // 데이터베이스 쿼리
   const query = `
-    SELECT * FROM intake 
-    WHERE user = ? AND DATE(date) = ?
+    SELECT i.*, d.* FROM intake i
+    JOIN drink d ON i.drink = d.d_id
+    WHERE i.user = ? AND DATE(i.date) = ?
   `;
 
   connection.query(query, [u_id, today],
@@ -464,21 +462,21 @@ app.get("/intake/weekSugar", verifyJWT, (req, res) => {
   // 데이터베이스 쿼리
   const query = `
     SELECT
-    days.day,
-    COALESCE(SUM(d.sugar), 0) as total_sugar
+      days.day,
+      COALESCE(SUM(d.sugar), 0) as total_sugar
     FROM (
-      SELECT 'Mon' as day
+      SELECT 'Sun' as day
+      UNION ALL SELECT 'Mon'
       UNION ALL SELECT 'Tue'
       UNION ALL SELECT 'Wed'
       UNION ALL SELECT 'Thu'
       UNION ALL SELECT 'Fri'
       UNION ALL SELECT 'Sat'
-      UNION ALL SELECT 'Sun'
     ) days
     LEFT JOIN intake i ON DATE_FORMAT(i.date, '%a') = days.day AND i.user = ? AND i.date >= DATE_SUB(CURRENT_DATE, INTERVAL 1 WEEK)
     LEFT JOIN drink d ON i.drink = d.d_id
     GROUP BY days.day
-    ORDER BY FIELD(days.day, 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun');  
+    ORDER BY FIELD(days.day, 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
   `;
 
   connection.query(query, [u_id],

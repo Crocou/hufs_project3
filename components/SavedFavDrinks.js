@@ -13,8 +13,7 @@ const nutritionMapping = {
 
 
 // 개별 저장 정보 항목 컴포넌트
-const SavedInfoItem = ({ data, onSelect }) => {
-  const toast = useToast();
+const SavedFavItem = ({ data, onSelect }) => {
   const [isStarred, setIsStarred] = useState(false); // 즐겨찾기 여부 상태
   const formatValue = value => value % 1 === 0 ? Math.floor(value) : value;
   useEffect(() => {
@@ -56,8 +55,8 @@ const SavedInfoItem = ({ data, onSelect }) => {
         time: currentDate.getHours() * 100 + currentDate.getMinutes() // HHMM 형식으로 변환 (이 부분은 필요에 따라 수정하실 수 있습니다.)
       };
       await addIntake(intakeData);
-      console.log("Intake data added successfully.");
       toast.show({ title: "섭취 목록 추가 완료", duration: 100, placement: "top"});
+      console.log("Intake data added successfully.");
     } catch (error) {
       console.error("Error adding intake data:", error);
     }
@@ -109,26 +108,26 @@ const SavedInfoItem = ({ data, onSelect }) => {
     </TouchableWithoutFeedback>
   );
 };
+
 // 저장된 음료 정보 전체 목록을 관리하는 컴포넌트
-const SavedInfo = ({ searchTerm, onSelect }) => {
+const SavedFav = ({ searchTerm, onSelect }) => {
+  const toast = useToast();
   const [savedData, setSavedData] = useState([]); // 저장된 음료 데이터 상태
 
-  // 항목이 선택되었을 때의 처리
-  const handleItemSelect = (selectedItem) => {
-    console.log('Selected item:', selectedItem);
-    if (onSelect) {
-      onSelect(selectedItem);
-    }
-  };
+  //즐겨찾기 음료 데이터 불러오기
   useEffect(() => {
-    // 음료 데이터를 가져오는 함수
     const fetchData = async () => {
       try {
-        const responseData = await getDrinkData();  // apiService에서 가져온 함수 사용
+        const favorites = await getFav(); // 즐겨찾기 목록 가져오기
+        const favoriteIds = new Set(favorites.map(fav => fav.drink)); // 즐겨찾기 음료 ID 목록 생성
 
-        // 전체 데이터를 매핑. 화면에는 당류와 카페인만 표시되지만, 
-        // 다른 모든 데이터도 가져와서 상태에 저장.
-        const mappedData = responseData.map(item => ({
+        const allDrinks = await getDrinkData(); // 모든 음료 데이터 가져오기
+
+        // 즐겨찾기에 포함된 음료만 필터링
+        const filteredDrinks = allDrinks.filter(drink => favoriteIds.has(drink.d_id));
+
+        // 필터링된 데이터 매핑
+        const mappedData = filteredDrinks.map(item => ({
           drinkName: item.d_name,
           manufacturer: item.manuf,
           sugar: item.sugar,
@@ -151,13 +150,12 @@ const SavedInfo = ({ searchTerm, onSelect }) => {
 
     fetchData();
   }, []);
-  // 검색어를 사용하여 목록을 필터링
-  const filteredData = searchTerm
-    ? savedData.filter(item =>
-      item.drinkName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    : savedData;
+
+  // savedData 상태 변화 추적
+  useEffect(() => {
+    console.log("savedData has been updated:", savedData);
+  }, [savedData]);
+
   // UI 구성 및 리스트 렌더링
   return (
     <Flex
@@ -169,9 +167,9 @@ const SavedInfo = ({ searchTerm, onSelect }) => {
       flex={1}
     >
       <FlatList
-        data={filteredData} // 필터링된 데이터를 사용
-        renderItem={({ item }) => <SavedInfoItem data={item} onSelect={handleItemSelect} />}
-        keyExtractor={(item, index) => index.toString()}
+        data={savedData}
+        renderItem={({ item }) => <SavedFavItem data={item} onSelect={onSelect} />}
+        keyExtractor={(item, index) => item.id.toString()}
         contentContainerStyle={{ alignItems: 'center', paddingBottom: 20 }}
         onStartShouldSetResponderCapture={() => true}
       />
@@ -199,6 +197,6 @@ const styles = {
     width: "100%"
   }
 };
-export default SavedInfo;
+export default SavedFav;
 
 
