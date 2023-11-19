@@ -1,56 +1,126 @@
 import React from 'react';
 import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
+import AppIntroSlider from 'react-native-app-intro-slider';
 import { useNavigation } from '@react-navigation/native';
-import KakaoWebView from './KakaoWebView';
 
-const CLIENT_ID = "695757edacbf01e55c4d269a9ff165ba";
-const REDIRECT_URI = "http://localhost:3000/auth/kakao/callback";
+const slides = [
+  {
+    key: 'one',
+    image: require('./assets/coffee.jpg'),
+  },
+  {
+    key: 'two',
+    image: require('./assets/coffee2.jpg'),
+  },
+  {
+    key: 'three',
+    image: require('./assets/juice3.png'),
+  },
+];
 
-const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
-
-//const Stack = createStackNavigator();
 const Kakao = () => {
-    const navigation = useNavigation();
-    //const handleKakaoLogin = () => {
-        //navigation.navigate('KakaoWebView');
-        
-    //};
+  const navigation = useNavigation();
+
+  const _renderItem = ({ item }) => {
     return (
-      <View style={styles.container}>
-          <Image
-              source={require('./assets/coffee.jpg')} // assets 폴더의 실제 경로로 대체해주세요.
-              style={styles.coffeeImageStyle}
-          />
-          <TouchableOpacity onPress={() => navigation.navigate('KakaoWebView')} >
-              <Image
-                  source={{ uri: 'https://developers.kakao.com/tool/resource/static/img/button/login/full/ko/kakao_login_medium_narrow.png' }}
-                  style={styles.kakaoLoginImageStyle}
-              />
-          </TouchableOpacity>
+      <View style={styles.slide}>
+        <Image source={item.image} style={styles.image} />
       </View>
+    );
+  };
+
+  const _renderPagination = (activeIndex) => {
+    return (
+      <View style={styles.paginationContainer}>
+        <View style={styles.paginationDots}>
+          {slides.map((_, index) => (
+            <View key={index} style={[styles.dot, activeIndex === index ? styles.activeDot : styles.inactiveDot]} />
+          ))}
+        </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('KakaoWebView')}
+        >
+          <Image
+            source={{ uri: 'https://developers.kakao.com/tool/resource/static/img/button/login/full/ko/kakao_login_medium_narrow.png' }}
+            style={styles.kakaoLoginImageStyle}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  return (
+    <View style={{ flex: 1 }}>
+      <AppIntroSlider
+        renderItem={_renderItem}
+        data={slides}
+        renderPagination={_renderPagination}
+        dotStyle={styles.inactiveDot}
+        activeDotStyle={styles.activeDot}
+      />
+    </View>
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: {
+  slide: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 96, // Decrease this value to move the image up
+  },
+  image: {
+    width: 320,
+    height: 548,
+    resizeMode: 'cover',
+  },
+  button: {
+    marginBottom: 120, // Adjust the space as needed
+  },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center'
+  },
+  paginationDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 70, // Adjust as needed for spacing
+  },
+  pagination: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white', // 배경색을 설정하여 이미지 사이의 여백이 흰색이 되도록 설정
   },
-  coffeeImageStyle: {
-    width: 300, // 적당한 크기로 설정
-    height: 300, // 적당한 크기로 설정
-    resizeMode: 'contain', // 이미지 비율을 유지하면서 컨테이너에 맞춤
-    marginBottom: 150, // '카카오 로그인' 이미지와의 간격 설정
+  dot: {
+    height: 10,
+    width: 10,
+    borderRadius: 5,
+    marginHorizontal: 3,
+  },
+  inactiveDot: {
+    backgroundColor: '#888',
+  },
+  activeDot: {
+    backgroundColor: 'purple',
+  },
+  rightTextWrapper: {
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
   },
   kakaoLoginImageStyle: {
-    width: 200, // 로그인 이미지 크기 설정
-    height: 45, // 로그인 이미지 높이 설정
-    resizeMode: 'contain', // 이미지 비율을 유지하면서 컨테이너에 맞춤
+    width: 200,
+    height: 45,
+    resizeMode: 'contain'
   }
 });
-
 
 export default Kakao;
