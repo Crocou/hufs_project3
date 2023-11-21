@@ -42,7 +42,7 @@ const Kakao = () => {
           onPress={() => navigation.navigate('KakaoWebView')}
         >
           <Image
-            source={{ uri: 'https://developers.kakao.com/tool/resource/static/img/button/login/full/ko/kakao_login_medium_narrow.png' }}
+            source={require('./assets/kakao_login_large_wide.png')}
             style={styles.kakaoLoginImageStyle}
           />
         </TouchableOpacity>
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 96, // Decrease this value to move the image up
+    marginBottom: 96, 
   },
   image: {
     width: 320,
@@ -76,7 +76,10 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   button: {
-    marginBottom: 120, // Adjust the space as needed
+    marginBottom: 120, 
+    width : 320,
+    alignContent: 'center',
+    alignItems: 'center'
   },
   paginationContainer: {
     position: 'absolute',
@@ -88,7 +91,7 @@ const styles = StyleSheet.create({
   paginationDots: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 70, // Adjust as needed for spacing
+    marginBottom: 70, 
   },
   pagination: {
     position: 'absolute',
@@ -117,9 +120,9 @@ const styles = StyleSheet.create({
     bottom: 10,
   },
   kakaoLoginImageStyle: {
-    width: 200,
+    width: '100%',
     height: 45,
-    resizeMode: 'contain'
+    resizeMode: 'cover'
   }
 });
 
