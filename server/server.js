@@ -113,7 +113,6 @@ app.get("/drink/:d_id", (req, res) => {
     }
 
     if (results.length > 0) {
-      console.log("Drink found:", results[0]);
       res.send(results[0]);
     } else {
       res.status(404).send({ message: "Drink not found" });
@@ -251,6 +250,24 @@ app.put("/user", verifyJWT, (req, res) => {
       }
       res.status(200).send({ message: "User data updated successfully." });
     });
+});
+
+app.get("/user/:u_id", verifyJWT, (req, res) => {
+  const u_id = req.params.u_id; // URL 파라미터로부터 `u_id` 추출
+
+  connection.query("SELECT * FROM hufs.user WHERE u_id = ?", [u_id], (error, results) => {
+    if (error) {
+      console.error("사용자 프로필을 검색하는 중 오류가 발생했습니다: ", error);
+      res.status(500).send({ message: "사용자 프로필을 검색하는 중 오류가 발생했습니다" });
+      return;
+    }
+
+    if (results.length > 0) {
+      res.send(results[0]);
+    } else {
+      res.status(404).send({ message: "사용자 프로필을 찾을 수 없습니다" });
+    }
+  });
 });
 
 
@@ -432,14 +449,33 @@ app.get("/intake", verifyJWT, (req, res) => {
     });
 });
 
-//일일 섭취 기록 조회
+// 일일 섭취 기록 조회 (intake 형식으로)
+app.get("/intake/todaylist", verifyJWT, (req, res) => {
+  const userId = req.u_id; // JWT에서 추출한 사용자 ID
+  const today = new Date().toISOString().slice(0, 10); // 오늘 날짜 (YYYY-MM-DD 형식)
+
+  const query = `
+    SELECT * FROM intake 
+    WHERE user = ? AND date = ?
+  `;
+
+  connection.query(query, [userId, today], (error, results) => {
+    if (error) {
+      console.error("Error retrieving today's intake data: ", error);
+      res.status(500).send({ message: "Error retrieving today's intake data" });
+      return;
+    }
+    res.status(200).send(results);
+  });
+});
+
 app.get("/intake/today", verifyJWT, (req, res) => {
   const u_id = req.u_id; // JWT 미들웨어에서 추출된 사용자 ID
 
   const today = new Date().toISOString().slice(0, 10);
 
   const query = `
-    SELECT i.*, d.* FROM intake i
+    SELECT i.date, i.time, d.* FROM intake i
     JOIN drink d ON i.drink = d.d_id
     WHERE i.user = ? AND DATE(i.date) = ?
   `;
@@ -454,6 +490,7 @@ app.get("/intake/today", verifyJWT, (req, res) => {
       res.status(200).send(results);
     });
 });
+
 
 //주간 섭취 기록 조회
 app.get("/intake/weekSugar", verifyJWT, (req, res) => {
@@ -492,6 +529,7 @@ app.get("/intake/weekSugar", verifyJWT, (req, res) => {
 
 // 음료 섭취 데이터 삭제
 app.delete("/intake", verifyJWT, (req, res) => {
+  console.log("Received delete request with body:", req.body);
   const { date, drink, time } = req.body;
   const userId = req.u_id;
 
@@ -499,6 +537,8 @@ app.delete("/intake", verifyJWT, (req, res) => {
     DELETE FROM intake 
     WHERE user = ? AND date = ? AND drink = ? AND time = ?
   `;
+  console.log("Executing query:", query);
+  console.log("With parameters:", [userId, date, drink, time]);
 
   connection.query(query, [userId, date, drink, time],
     (error, results) => {

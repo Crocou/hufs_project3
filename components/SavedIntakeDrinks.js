@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Text, Flex, Box, Image } from "native-base";
+import { Spinner, HStack, Heading, Text, Flex, Box, Image, useToast } from "native-base";
 import { FlatList, TouchableWithoutFeedback } from "react-native";
+import { useIsFocused } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
-import { getTodayIntake } from "../service/apiService";
+import { getTodayIntake, deleteIntake } from "../service/apiService";
 import { RFValue } from 'react-native-responsive-fontsize';
 import perfect from '../assets/perfect.png';
 import good from '../assets/good.png';
@@ -17,7 +18,7 @@ const nutritionMapping = {
 };
 
 // 개별 저장 정보 항목 컴포넌트
-const SavedInfoItem = ({ data, onDelete }) => {
+const SavedInfoItem = ({ data, deleteIntakeItem, deleting }) => {
     const formatValue = (value) =>
         value % 1 === 0 ? Math.floor(value) : value;
 
@@ -44,7 +45,7 @@ const SavedInfoItem = ({ data, onDelete }) => {
                                     name="delete"
                                     size={20}
                                     color="lightgray"
-                                    onPress={() => onDelete(data)} title="삭제"
+                                    onPress={() => !deleting && deleteIntakeItem({ id: data.id, date: data.date, time: data.time })} title="삭제"
                                 />
                             </Flex>
                         </Flex>
@@ -75,18 +76,23 @@ const SavedInfoItem = ({ data, onDelete }) => {
 };
 
 // 저장된 음료 정보 전체 목록을 관리하는 컴포넌트
-const SavedIntakeDrinks = ({ onDelete }) => {
-    const [savedData, setSavedData] = useState([]); // 저장된 음료 데이터 상태
+const SavedIntakeDrinks = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [savedData, setSavedData] = useState([]);
+    const isFocused = useIsFocused();
+    const [deleting, setDeleting] = useState(false);
+    const toast = useToast();
 
-    useEffect(() => {
-        // 음료 데이터를 가져오는 함수
-        const fetchData = async () => {
-            try {
-                const responseData = await getTodayIntake(); // apiService에서 가져온 함수 사용
+    // 음료 데이터를 가져오는 함수
+    const fetchData = async () => {
+        try {
+            const responseData = await getTodayIntake();
+            const mappedData = responseData.map((item) => {
+                const date = new Date(item.date);
+                date.setDate(date.getDate() + 1);
+                const formattedDate = date.toISOString().split('T')[0];
 
-                // 전체 데이터를 매핑. 화면에는 당류와 카페인만 표시되지만,
-                // 다른 모든 데이터도 가져와서 상태에 저장.
-                const mappedData = responseData.map((item) => ({
+                return {
                     drinkName: item.d_name,
                     manufacturer: item.manuf,
                     sugar: item.sugar,
@@ -99,18 +105,41 @@ const SavedIntakeDrinks = ({ onDelete }) => {
                     fat: item.fat,
                     grade: item.grade,
                     source: item.source,
-                }));
+                    time: item.time,
+                    date: formattedDate
+                };
+            });
+            console.log("mappedData: ", mappedData)
+            setSavedData(mappedData);
+        } catch (error) {
+            console.error("Error fetching drinks:", error);
+        }
+    };
 
-                setSavedData(mappedData);
-            } catch (error) {
-                console.error("Error fetching drinks:", error);
-            }
-        };
+    const deleteIntakeItem = async (intake) => {
+        setDeleting(true);
+        setIsLoading(true); // 로딩 시작
+        console.log("Deleting intake item:", intake);
+        try {
+            await deleteIntake({
+                date: intake.date,
+                drink: intake.id,
+                time: intake.time
+            });
+            toast.show({ title: "섭취 목록 변경 완료", duration: 1000, placement: "top" });
+            setSavedData(currentData => currentData.filter(item => item.time !== intake.time));
+        } catch (error) {
+            console.error("음료 삭제 실패", error);
+        }
+        setIsLoading(false);
+        setDeleting(false);
+    };
 
+
+    useEffect(() => {
         fetchData();
-    }, []);
+    }, [isFocused]);
 
-    // UI 구성 및 리스트 렌더링
     return (
         <Flex
             direction="column"
@@ -120,12 +149,24 @@ const SavedIntakeDrinks = ({ onDelete }) => {
             justifyContent="center"
             flex={1}
         >
+            {isLoading && (
+                <HStack space={2} justifyContent="center" mb="5">
+                    <Spinner accessibilityLabel="Loading drinks" color="muted.300" />
+                    <Heading color="muted.300" fontSize="sm">
+                        삭제 중
+                    </Heading>
+                </HStack>
+            )}
             <FlatList
                 data={savedData}
                 renderItem={({ item }) => (
-                    <SavedInfoItem data={item} onDelete={onDelete} />
+                    <SavedInfoItem
+                        data={item}
+                        deleteIntakeItem={deleteIntakeItem}
+                        deleting={deleting}
+                    />
                 )}
-                keyExtractor={(item, index) => index.toString()}
+                keyExtractor={(item) => item.time.toString()}
                 contentContainerStyle={{ alignItems: "center", paddingBottom: 20 }}
                 onStartShouldSetResponderCapture={() => true}
             />

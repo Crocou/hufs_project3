@@ -33,11 +33,11 @@ const SavedInfoItem = ({ data, onSelect }) => {
   const handleStarPress = async () => {
     try {
       if (isStarred) {
-        await removeFav(data.id);
         toast.show({ title: "즐겨찾기 해제 완료", duration: 100, placement: "top" });
+        await removeFav(data.id);
       } else {
-        await addFav(data.id);
         toast.show({ title: "즐겨찾기 등록 완료", duration: 100, placement: "top" });
+        await addFav(data.id);
       }
       setIsStarred(!isStarred); // 상태 반전
     } catch (error) {
@@ -57,7 +57,7 @@ const SavedInfoItem = ({ data, onSelect }) => {
       };
       await addIntake(intakeData);
       console.log("Intake data added successfully.");
-      toast.show({ title: "섭취 목록 추가 완료", duration: 100, placement: "top"});
+      toast.show({ title: "섭취 목록 추가 완료", duration: 100, placement: "top" });
     } catch (error) {
       console.error("Error adding intake data:", error);
     }

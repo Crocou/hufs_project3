@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
-import { NativeBaseProvider, Text, useToast } from 'native-base';
+import { NativeBaseProvider, Text } from 'native-base';
+
 import CircularProgress from '../components/CircularProgress';
 import BasicProgress from '../components/BasicProgress';
 import WeeklyProgress from '../components/WeeklyProgress';
-import { getDrinkDataById, getTodayIntake, deleteIntake } from '../service/apiService';
-import IntakeModal from '../components/IntakeModal'; // 여기에 모달 컴포넌트 임포트
-
+import { getDrinkDataById, getTodayIntake } from '../service/apiService';
+import IntakeModal from '../components/IntakeModal';
 
 function formatNutrientValue(value) {
   // 앞 자리 0을 제거하고 숫자로 변환합니다.
@@ -23,9 +23,11 @@ function formatNutrientValue(value) {
 }
 
 export function ReportScreen({ }) {
-  const toast = useToast();
   const isFocused = useIsFocused();
-  const [intakes, setIntakes] = useState([]); // 오늘 섭취한 음료 데이터를 저장할 상태
+  const [intakes, setIntakes] = useState([]); 
+  const windowWidth = Dimensions.get('window').width;
+  const [isModalVisible, setModalVisible] = useState(false);
+
   const [nutritionData, setNutritionData] = useState({
     sugar: 0,
     caffeine: 0,
@@ -39,11 +41,14 @@ export function ReportScreen({ }) {
     try {
       // 현재 날짜에 해당하는 섭취 내역 가져오기
       const intakes = await getTodayIntake(); // getIntake() 대신 getTodayIntake() 사용
+      console.log("intakes",intakes)
       setIntakes(intakes); // 오류 수정: 올바른 변수 이름을 사용
 
       // 각 섭취한 음료의 ID를 기반으로 영양 정보를 가져옵니다.
-      const drinksPromises = intakes.map(intake => getDrinkDataById(intake.drink));
+      const drinksPromises = intakes.map(intake => getDrinkDataById(intake.d_id));
+      console.log("drinksPromises", drinksPromises);
       const drinksData = await Promise.all(drinksPromises);
+      console.log("drinksData", drinksData); // 이 줄이 음료 데이터 로깅
 
       // 섭취에 기반한 총 영양소 계산
       const totals = drinksData.reduce((acc, data) => {
@@ -65,55 +70,19 @@ export function ReportScreen({ }) {
 
   const refreshData = async () => {
     try {
-      // 현재 날짜에 해당하는 섭취 내역 가져오기
       const intakes = await getTodayIntake();
       setIntakes(intakes);
-
-      // 여기에 영양 데이터 새로고침 로직 추가
-      // 예: 영양소 합계 계산 및 상태 업데이트
     } catch (error) {
       console.error("데이터 불러오기 실패:", error);
     }
   };
 
-  const deleteIntakeItem = async (intake) => {
-    try {
-      // Date 객체 생성
-      const dateObj = new Date(intake.date);
-
-      // 날짜를 'YYYY-MM-DD' 형식으로 포맷팅
-      const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-
-      const intakeData = {
-        ...intake,
-        date: formattedDate
-      };
-      console.log("Deleting intake item:", intakeData);
-
-      await deleteIntake(intakeData);
-
-        toast.show({ title: "섭취 목록 변경 완료", duration: 100, placement: "top" });
-
-      // 로컬 상태 업데이트
-      setIntakes(currentIntakes =>
-        currentIntakes.filter(i => !(i.date === intake.date && i.drink === intake.drink && i.time === intake.time))
-      );
-    } catch (error) {
-      console.error("음료 삭제 실패", error);
-    }
-  };
-
-  useEffect(() => {
-    refreshData();
-    fetchNutritionData();
-  }, [isFocused]);
-
-  const windowWidth = Dimensions.get('window').width;
-
-  const [isModalVisible, setModalVisible] = useState(false);
-
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
+    if (isModalVisible) {
+      refreshData();
+      fetchNutritionData();
+    }
   };
 
   const dynamicStyles = StyleSheet.create({
@@ -163,6 +132,11 @@ export function ReportScreen({ }) {
     }
   });
 
+  useEffect(() => {
+    refreshData();
+    fetchNutritionData();
+  }, [isFocused]);
+
   return (
     <NativeBaseProvider>
       <View style={dynamicStyles.container}>
@@ -173,7 +147,7 @@ export function ReportScreen({ }) {
           </View>
           <View style={dynamicStyles.textContainer}>
             <Text fontSize="xs" color="lightgray" onPress={toggleModal}>더보기</Text>
-            <IntakeModal isVisible={isModalVisible} onClose={toggleModal} intakes={intakes} onDeleteIntake={deleteIntakeItem} />
+            <IntakeModal isVisible={isModalVisible} onClose={toggleModal} intakes={intakes} />
           </View>
         </View>
 

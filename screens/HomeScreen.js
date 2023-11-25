@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Dimensions } from 'react-native';
 import { NativeBaseProvider, Box, View, Text } from 'native-base';
 import { useIsFocused } from '@react-navigation/native';
-
 import CircularProgress from '../components/CircularProgress';
 import BasicProgress from '../components/BasicProgress';
 import SavedFav from '../components/SavedFavDrinks';
@@ -23,7 +22,68 @@ function formatNutrientValue(value) {
 }
 
 export function HomeScreen({ }) {
+    const isFocused = useIsFocused();
     const windowWidth = Dimensions.get('window').width;
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [intakes, setIntakes] = useState([]);
+
+    const [nutritionData, setNutritionData] = useState({
+        sugar: 0,
+        caffeine: 0,
+        kcal: 0,
+        protein: 0,
+        natrium: 0,
+        fat: 0,
+    });
+
+    const fetchNutritionData = async () => {
+        try {
+            // 현재 날짜에 해당하는 섭취 내역 가져오기
+            const intakes = await getTodayIntake(); // getIntake() 대신 getTodayIntake() 사용
+
+            // 각 섭취한 음료의 ID를 기반으로 영양 정보를 가져옵니다.
+            const drinksPromises = intakes.map(intake => getDrinkDataById(intake.d_id));
+            const drinksData = await Promise.all(drinksPromises);
+
+            // 섭취에 기반한 총 영양소 계산
+            const totals = drinksData.reduce((acc, data) => {
+                return {
+                    sugar: acc.sugar + parseFloat(data.sugar || '0'), // 문자열을 숫자로 변환, null 값은 '0'으로 처리
+                    caffeine: acc.caffeine + parseFloat(data.caffeine || '0'),
+                    kcal: acc.kcal + parseFloat(data.kcal || '0'),
+                    protein: acc.protein + parseFloat(data.protein || '0'),
+                    natrium: acc.natrium + parseFloat(data.natrium || '0'),
+                    fat: acc.fat + parseFloat(data.fat || '0'),
+                };
+            }, { sugar: 0, caffeine: 0, kcal: 0, protein: 0, natrium: 0, fat: 0 }); // 초기값 설정
+
+            setNutritionData(totals);
+        } catch (error) {
+            console.error("영양 데이터를 불러오는데 실패했습니다", error);
+        }
+    };
+
+    const toggleModal = () => {
+        setModalVisible(!isModalVisible);
+        if (!isModalVisible) {
+            refreshData();
+            fetchNutritionData();
+        }
+    };
+
+    const handleRefresh = () => {
+        fetchNutritionData();
+    };
+
+    const refreshData = async () => {
+        try {
+          const fetchedIntakes = await getTodayIntake();
+          setIntakes(fetchedIntakes);
+          fetchNutritionData();
+        } catch (error) {
+          console.error("데이터 불러오기 실패:", error);
+        }
+      };
 
     const dynamicStyles = StyleSheet.create({
         container: {
@@ -72,92 +132,7 @@ export function HomeScreen({ }) {
         }
     });
 
-    const isFocused = useIsFocused();
-
-    const [isModalVisible, setModalVisible] = useState(false);
-
-    const toggleModal = () => {
-        setModalVisible(!isModalVisible);
-    };
-
-    const [intakes, setIntakes] = useState([]);
-
-    const [nutritionData, setNutritionData] = useState({
-        sugar: 0,
-        caffeine: 0,
-        kcal: 0,
-        protein: 0,
-        natrium: 0,
-        fat: 0,
-    });
-
-    const fetchNutritionData = async () => {
-        try {
-            // 현재 날짜에 해당하는 섭취 내역 가져오기
-            const intakes = await getTodayIntake(); // getIntake() 대신 getTodayIntake() 사용
-
-            // 각 섭취한 음료의 ID를 기반으로 영양 정보를 가져옵니다.
-            const drinksPromises = intakes.map(intake => getDrinkDataById(intake.drink));
-            const drinksData = await Promise.all(drinksPromises);
-
-            // 섭취에 기반한 총 영양소 계산
-            const totals = drinksData.reduce((acc, data) => {
-                return {
-                    sugar: acc.sugar + parseFloat(data.sugar || '0'), // 문자열을 숫자로 변환, null 값은 '0'으로 처리
-                    caffeine: acc.caffeine + parseFloat(data.caffeine || '0'),
-                    kcal: acc.kcal + parseFloat(data.kcal || '0'),
-                    protein: acc.protein + parseFloat(data.protein || '0'),
-                    natrium: acc.natrium + parseFloat(data.natrium || '0'),
-                    fat: acc.fat + parseFloat(data.fat || '0'),
-                };
-            }, { sugar: 0, caffeine: 0, kcal: 0, protein: 0, natrium: 0, fat: 0 }); // 초기값 설정
-
-            setNutritionData(totals);
-        } catch (error) {
-            console.error("영양 데이터를 불러오는데 실패했습니다", error);
-        }
-    };
-
-    const deleteIntakeItem = async (intake) => {
-        try {
-            // Date 객체 생성
-            const dateObj = new Date(intake.date);
-
-            // 날짜를 'YYYY-MM-DD' 형식으로 포맷팅
-            const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-
-            const intakeData = {
-                ...intake,
-                date: formattedDate
-            };
-            console.log("Deleting intake item:", intakeData);
-
-            await deleteIntake(intakeData);
-
-            // 로컬 상태 업데이트
-            setIntakes(currentIntakes =>
-                currentIntakes.filter(i => !(i.date === intake.date && i.drink === intake.drink && i.time === intake.time))
-            );
-        } catch (error) {
-            console.error("음료 삭제 실패", error);
-        }
-    };
-
-    const refreshData = async () => {
-        try {
-          // 현재 날짜에 해당하는 섭취 내역 가져오기
-          const intakes = await getTodayIntake();
-          setIntakes(intakes);
-    
-          // 여기에 영양 데이터 새로고침 로직 추가
-          // 예: 영양소 합계 계산 및 상태 업데이트
-        } catch (error) {
-          console.error("데이터 불러오기 실패:", error);
-        }
-    };
-
     useEffect(() => {
-        refreshData();
         fetchNutritionData();
     }, [isFocused]);
 
@@ -171,7 +146,7 @@ export function HomeScreen({ }) {
                         </View>
                         <View style={dynamicStyles.textContainer}>
                             <Text fontSize="xs" color="lightgray" onPress={toggleModal}>더보기</Text>
-                            <IntakeModal isVisible={isModalVisible} onClose={toggleModal} intakes={intakes} onDeleteIntake={deleteIntakeItem} />
+                            <IntakeModal isVisible={isModalVisible} onClose={toggleModal} intakes={intakes} onItemDeleted={refreshData} />
                         </View>
                     </View>
 
@@ -187,8 +162,7 @@ export function HomeScreen({ }) {
                         <BasicProgress nutrient="열량" currentAmount={formatNutrientValue(nutritionData.kcal)} goalAmount={2000} unit="kcal" />
                     </View>
                 </View>
-
-                <SavedFav flex={1} />
+                <SavedFav flex={1} onRefresh={handleRefresh} />
             </Box>
         </NativeBaseProvider>
     );

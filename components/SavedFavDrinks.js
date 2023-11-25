@@ -13,7 +13,8 @@ const nutritionMapping = {
 
 
 // 개별 저장 정보 항목 컴포넌트
-const SavedFavItem = ({ data, onSelect }) => {
+const SavedFavItem = ({ data, onSelect, onRefresh }) => {
+  const toast = useToast();
   const [isStarred, setIsStarred] = useState(false); // 즐겨찾기 여부 상태
   const formatValue = value => value % 1 === 0 ? Math.floor(value) : value;
   useEffect(() => {
@@ -33,15 +34,16 @@ const SavedFavItem = ({ data, onSelect }) => {
     try {
       if (isStarred) {
         await removeFav(data.id);
-        toast.show({ title: "즐겨찾기 해제 완료", duration: 100, placement: "top" });
+        toast.show({ title: "즐겨찾기 해제 완료", duration: 1000, placement: "bottom" });
       } else {
         await addFav(data.id);
-        toast.show({ title: "즐겨찾기 등록 완료", duration: 100, placement: "top" });
+        toast.show({ title: "즐겨찾기 등록 완료", duration: 1000, placement: "bottom" });
       }
       setIsStarred(!isStarred); // 상태 반전
     } catch (error) {
       console.error("Error updating favorite status:", error);
     }
+
   };
   // 섭취 정보를 추가하는 함수
   const handleAddIntake = async () => {
@@ -55,8 +57,9 @@ const SavedFavItem = ({ data, onSelect }) => {
         time: currentDate.getHours() * 100 + currentDate.getMinutes() // HHMM 형식으로 변환 (이 부분은 필요에 따라 수정하실 수 있습니다.)
       };
       await addIntake(intakeData);
-      toast.show({ title: "섭취 목록 추가 완료", duration: 100, placement: "top"});
+      toast.show({ title: "섭취 목록 추가 완료", duration: 1000, placement: "bottom"});
       console.log("Intake data added successfully.");
+      onRefresh();
     } catch (error) {
       console.error("Error adding intake data:", error);
     }
@@ -110,7 +113,7 @@ const SavedFavItem = ({ data, onSelect }) => {
 };
 
 // 저장된 음료 정보 전체 목록을 관리하는 컴포넌트
-const SavedFav = ({ searchTerm, onSelect }) => {
+const SavedFav = ({ onRefresh, onSelect }) => {
   const toast = useToast();
   const [savedData, setSavedData] = useState([]); // 저장된 음료 데이터 상태
 
@@ -168,7 +171,13 @@ const SavedFav = ({ searchTerm, onSelect }) => {
     >
       <FlatList
         data={savedData}
-        renderItem={({ item }) => <SavedFavItem data={item} onSelect={onSelect} />}
+        renderItem={({ item }) => (
+          <SavedFavItem
+              data={item}
+              onSelect={onSelect}
+              onRefresh={onRefresh}
+          />
+      )}
         keyExtractor={(item, index) => item.id.toString()}
         contentContainerStyle={{ alignItems: 'center', paddingBottom: 20 }}
         onStartShouldSetResponderCapture={() => true}

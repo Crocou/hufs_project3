@@ -15,6 +15,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { BookmarkScreen } from './screens/BookmarkScreen';
 import { SearchScreen } from './screens/SearchScreen';
 import { ReportScreen } from './screens/ReportScreen';
+import { ProfileScreen } from './screens/ProfileScreen';
 import LoginProfileScreen from './screens/LoginProfileScreen';
 import LoginProfileScreen2 from './screens/LoginProfileScreen2';
 
@@ -26,13 +27,6 @@ global.btoa = base64.encode;
 // 네비게이션 구조를 위한 탭 및 스택 생성자 초기화
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
-function ProfileScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white' }}>
-    </View>
-  );
-}
 
 // 하단 탭 네비게이션 컴포넌트
 function MyTabs() {
@@ -99,14 +93,14 @@ function AppNavigator({ userId, userName }) {
   useEffect(() => {
     // 사용자 인증 여부에 따라 초기 화면 설정
     setIsAuthenticated(!!userId);
-    const initialScreenName = isAuthenticated ? "Kakao" : "Kakao";
+    const initialScreenName = isAuthenticated ? "Kakao" : "MainTabs";
     console.log("Initial screen set to:", initialScreenName);
   }, [userId]);
 
   // 사용자 인증 여부에 따라 초기 화면 설정
   return (
-    <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "Kakao"}>
-      <Stack.Screen name="Kakao" component={Kakao} options={{ headerShown: false }}/>
+    <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "MainTabs"}>
+      <Stack.Screen name="Kakao" component={Kakao} options={{ headerShown: false }} />
       <Stack.Screen name="KakaoWebView" component={KakaoWebView} />
       <Stack.Screen name="LoginProfile" component={LoginProfileScreen} initialParams={{ userName: userName }} />
       <Stack.Screen name="LoginProfile2" component={LoginProfileScreen2} options={{ headerShown: false }} />
@@ -123,13 +117,13 @@ export default function App() {
     // JWT를 확인하여 사용자 인증 처리
     const verifyUserExists = async () => {
       const token = await getJWT(); // 토큰 불러오기
-      console.log('Stored JWT:', token);
+      console.log('저장된 JWT:', token);
 
       if (token) {
         let decodedToken;
         try {
           decodedToken = jwtDecode(token);
-          console.log('Decoded Token:', decodedToken); // 디코딩된 토큰 로그 출력
+          console.log('디코딩된 토큰: ', decodedToken); // 디코딩된 토큰 로그 출력
         } catch (error) {
           console.error("Error decoding the token:", error);
           return;
@@ -137,21 +131,18 @@ export default function App() {
 
         // 토큰에서 사용자 ID 추출
         const extractedUserId = decodedToken && decodedToken.userId && decodedToken.userId[0] && decodedToken.userId[0].u_id;
-        setUserName(decodedToken.userId[0].u_name);
-        console.log('Extracted user_id from JWT:', extractedUserId);
-        console.log('Extracted user_name from JWT:', extractedUserName);
+        console.log('JWT에서 ID 추출:', extractedUserId);
 
         // 사용자 ID가 있을 경우 서버에 확인 요청
         if (extractedUserId) {
           try {
-            const response = await fetch(`http://10.10.0.204:4000/auth/info?user_id=${extractedUserId}`);
+            const response = await fetch(`http://172.30.1.11:4000/auth/info?user_id=${extractedUserId}`);
             const data = await response.json();
-            console.log('Server response:', data);
+            console.log('사용자 정보(DB 추출):', data);
 
             if (data.result && data.result.length > 0) {
-              console.log('User exists in the database');
-              setUserId(extractedUserId); // userId 상태 설정
-              console.log(decodedToken.userId[0].u_name);
+              console.log('DB에 사용자 존재함');
+              setUserId(data.result[0].u_id);
               return <AppNavigator userId={userId} userName={decodedToken.userId[0].u_name} />;
             } else {
               console.log('User not found in the database');
@@ -171,7 +162,7 @@ export default function App() {
   return (
     <NativeBaseProvider>
       <NavigationContainer>
-        <AppNavigator userId={userId} userName={userName}/>
+        <AppNavigator userId={userId} userName={userName} />
       </NavigationContainer>
     </NativeBaseProvider>
   );

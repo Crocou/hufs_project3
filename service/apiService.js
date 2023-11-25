@@ -52,6 +52,12 @@ async function sendRequestWithJWT(endpoint, method, data = null) {
   }
 };
 
+
+// 사용자 프로필 데이터 가져오기
+export const getUserProfile = (u_id) => {
+  return sendRequestWithJWT(`/user/${u_id}`, 'get');
+};
+
 // 음료 목록 가져오기
 export const getDrinkData = () => {
   return sendRequestWithJWT('/drink', 'get');
@@ -99,7 +105,12 @@ export const addIntake = (intakeData) => {
   return sendRequestWithJWT('/intake', 'post', intakeData);
 };
 
-// 당일 음료 섭취 데이터 가져오기
+// 당일 음료 섭취 데이터 가져오기 (intake table format)
+export const getTodayIntakeList = () => {
+  return sendRequestWithJWT('/intake/todaylist', 'get');
+};
+
+// 당일 음료 섭취 데이터 가져오기 (drink table format)
 export const getTodayIntake = () => {
   return sendRequestWithJWT('/intake/today', 'get');
 };
