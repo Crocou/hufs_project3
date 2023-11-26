@@ -3,7 +3,6 @@ import { Text, Flex, Box, useToast } from "native-base";
 import { AntDesign } from '@expo/vector-icons';
 import { FlatList, TouchableWithoutFeedback } from 'react-native';
 import { getDrinkData, getFav, addFav, removeFav, addIntake } from "../service/apiService";
-import SavedInfoFrame from "./SavedInfoFrame";
 
 // 영양소 이름과 한국어 매핑 정보
 const nutritionMapping = {
@@ -109,9 +108,32 @@ const SavedInfoItem = ({ data, onSelect }) => {
     </TouchableWithoutFeedback>
   );
 };
+
 // 저장된 음료 정보 전체 목록을 관리하는 컴포넌트
-const SavedInfo = ({ searchTerm, onSelect }) => {
-  const [savedData, setSavedData] = useState([]); // 저장된 음료 데이터 상태
+const SavedInfo = ({ searchTerm, onSelect, drinks }) => {
+  // 매핑된 음료 데이터
+  const mappedDrinks = drinks.map(item => ({
+    drinkName: item.d_name,
+    manufacturer: item.manuf,
+    sugar: item.sugar,
+    caffeine: item.caffeine,
+    id: item.d_id,
+    size: item.size,
+    kcal: item.kcal,
+    protein: item.protein,
+    natrium: item.natrium,
+    fat: item.fat,
+    grade: item.grade,
+    source: item.source
+  }));
+
+  // 검색어를 사용하여 목록을 필터링
+  const filteredData = searchTerm
+    ? mappedDrinks.filter(item =>
+        item.drinkName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : mappedDrinks;
 
   // 항목이 선택되었을 때의 처리
   const handleItemSelect = (selectedItem) => {
@@ -120,44 +142,7 @@ const SavedInfo = ({ searchTerm, onSelect }) => {
       onSelect(selectedItem);
     }
   };
-  useEffect(() => {
-    // 음료 데이터를 가져오는 함수
-    const fetchData = async () => {
-      try {
-        const responseData = await getDrinkData();  // apiService에서 가져온 함수 사용
 
-        // 전체 데이터를 매핑. 화면에는 당류와 카페인만 표시되지만, 
-        // 다른 모든 데이터도 가져와서 상태에 저장.
-        const mappedData = responseData.map(item => ({
-          drinkName: item.d_name,
-          manufacturer: item.manuf,
-          sugar: item.sugar,
-          caffeine: item.caffeine,
-          id: item.d_id,
-          size: item.size,
-          kcal: item.kcal,
-          protein: item.protein,
-          natrium: item.natrium,
-          fat: item.fat,
-          grade: item.grade,
-          source: item.source
-        }));
-
-        setSavedData(mappedData);
-      } catch (error) {
-        console.error("Error fetching drinks:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-  // 검색어를 사용하여 목록을 필터링
-  const filteredData = searchTerm
-    ? savedData.filter(item =>
-      item.drinkName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    : savedData;
   // UI 구성 및 리스트 렌더링
   return (
     <Flex

@@ -5,13 +5,6 @@ import {
 } from 'react-native';
 import { ToggleButton } from 'react-native-paper';
 
-//임의의 토큰 값 설정, 사용 
-//다음 화면에서도 사용
-const generateRandomToken = () => {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
-}
-const token = generateRandomToken(); 
-//
 
 const LoginProfileScreen = ({ navigation, route }) => {
   const [height, setHeight] = useState('');
@@ -77,7 +70,6 @@ const LoginProfileScreen = ({ navigation, route }) => {
   
     const currentYear = new Date().getFullYear();
     const age = currentYear - parseInt(birthYear);
-    const token = generateRandomToken();
   
     const userData = {
       height: parseInt(height),

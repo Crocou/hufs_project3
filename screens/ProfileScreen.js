@@ -4,6 +4,7 @@ import { getJWT } from '../service/authService';
 import { jwtDecode } from 'jwt-decode';
 import { getUserProfile } from '../service/apiService';
 import { View, Box, VStack, Text, Button, Image, Divider } from 'native-base';
+import ProfileEditModal from '../components/ProfileEditModal';
 
 function renderUserProfile(profileData) {
     return Object.entries(profileData).map(([key, value]) => {
@@ -76,6 +77,11 @@ function renderUserProfile(profileData) {
 
 export function ProfileScreen() {
     const [profileData, setProfileData] = useState({});
+    const [isModalVisible, setIsModalVisible] = useState(false);
+
+    const openModal = () => setIsModalVisible(true);
+    const closeModal = () => setIsModalVisible(false);
+
 
     useEffect(() => {
         // JWT에서 userId 추출
@@ -109,8 +115,20 @@ export function ProfileScreen() {
 
     return (
         <Box flex={1} safeArea bg="white">
+
+            {/* 프로필 수정 버튼 */}
+            <Button onPress={openModal}>프로필 수정</Button>
+
+            {/* 모달 컴포넌트 */}
+            <ProfileEditModal
+                isVisible={isModalVisible}
+                onClose={closeModal}
+                profileData={profileData}
+                setProfileData={setProfileData}
+            />
+
+            {/* 프로필 정보 */}
             <View justifyContent="center" alignItems="center">
-                {/* 프로필 정보 */}
                 <Box
                     bg="white"
                     p={10}

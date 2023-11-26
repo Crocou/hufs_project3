@@ -6,6 +6,7 @@ import { Center, VStack, Input, View, HStack, InputRightElement } from "native-b
 import { FormButton } from '../components/FormButton';
 import SavedInfo from '../components/SavedInfo';
 import SavedInfoFrame from '../components/SavedInfoFrame';
+import useDrinks from '../hooks/useDrinks';
 
 function SearchBar({ onSearchChange }) {
     return (
@@ -26,6 +27,7 @@ function SearchBar({ onSearchChange }) {
 }
 
 export function SearchScreen({ navigation }) {
+    const { drinks, addDrink } = useDrinks();
     const [searchTerm, setSearchTerm] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedDrink, setSelectedDrink] = useState(null);
@@ -56,7 +58,7 @@ export function SearchScreen({ navigation }) {
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false} style={{ flex: 1 }}>
                 <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', paddingTop: 10 }}>
                     <SearchBar onSearchChange={(text) => setSearchTerm(text)} />
-                    <SavedInfo searchTerm={searchTerm} onSelect={handleItemSelect} />
+                    <SavedInfo searchTerm={searchTerm} onSelect={handleItemSelect} drinks={drinks} />
                     {selectedDrink && (
                         <SavedInfoFrame
                             visible={modalVisible}

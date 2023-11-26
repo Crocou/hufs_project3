@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Dimensions } from "react-native";
 import { AntDesign } from '@expo/vector-icons';
 import { addCustomDrink } from '../service/apiService'
+import useDrinks from '../hooks/useDrinks';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -29,6 +30,7 @@ export const FormButton = () => {
   const toast = useToast();
   const [showModal, setShowModal] = useState(false); // 모달 보이기/숨기기
   const [warningVisible, setWarningVisible] = useState(false); // 경고 메시지 표시
+  const { addDrink } = useDrinks();
 
   // 입력 필드들의 상태
   const [manufacturer, setManufacturer] = useState("");
@@ -90,16 +92,17 @@ export const FormButton = () => {
         fat: parseFloat(fat),
         natrium: parseFloat(natruim),
       };
-
+  
       // 데이터베이스에 음료 정보를 등록
       try {
         await addCustomDrink(drinkData);
+        await addDrink(drinkData); 
         console.log("음료 정보가 성공적으로 등록되었습니다.");
         toast.show({ title: "음료 추가 완료" });
       } catch (error) {
         console.error("음료 정보 등록 중 오류가 발생했습니다.", error);
       }
-
+  
       setShowModal(false); // 모달 닫기
       resetFields(); // 필드 초기화
       setWarningVisible(false); // 경고 메시지 숨기기
