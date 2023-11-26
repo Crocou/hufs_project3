@@ -2,10 +2,8 @@
 
 const axios = require("axios");
 
-const conf = require('../KakaoAPI.json');
-
-const CLIENT_ID = conf.CLIENT_ID;
-const REDIRECT_URI = "http://localhost:3000/auth/kakao/callback";
+const CLIENT_ID = "695757edacbf01e55c4d269a9ff165ba";
+const REDIRECT_URI = "https://localhost:3000/auth/kakao/callback";
 
 //카카오 액세스 토큰 요청
 const getToken = async(code) => {

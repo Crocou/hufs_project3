@@ -97,12 +97,11 @@ function AppNavigator({ userId, userName }) {
     console.log("Initial screen set to:", initialScreenName);
   }, [userId]);
 
-  // 사용자 인증 여부에 따라 초기 화면 설정
   return (
     <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "MainTabs"}>
       <Stack.Screen name="Kakao" component={Kakao} options={{ headerShown: false }} />
-      <Stack.Screen name="KakaoWebView" component={KakaoWebView} />
-      <Stack.Screen name="LoginProfile" component={LoginProfileScreen} initialParams={{ userName: userName }} />
+      <Stack.Screen name="KakaoWebView" component={KakaoWebView} options={{ headerShown: false }}/>
+      <Stack.Screen name="LoginProfile" component={LoginProfileScreen} initialParams={{ userName: userName }} options={{ headerShown: false }}/>
       <Stack.Screen name="LoginProfile2" component={LoginProfileScreen2} options={{ headerShown: false }} />
       <Stack.Screen name="MainTabs" component={MyTabs} options={{ headerShown: false }} />
     </Stack.Navigator>
@@ -143,7 +142,7 @@ export default function App() {
             if (data.result && data.result.length > 0) {
               console.log('DB에 사용자 존재함');
               setUserId(data.result[0].u_id);
-              return <AppNavigator userId={userId} userName={decodedToken.userId[0].u_name} />;
+              setUserName(decodedToken.userId[0].u_name);
             } else {
               console.log('User not found in the database');
             }
