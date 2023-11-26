@@ -43,7 +43,7 @@ const KakaoWebView = () => {
   // 인증 코드를 서버에 전송하고 JWT 토큰을 받는 함수입니다.
   const sendCodeToServer = async (code) => {
     try {
-      const response = await fetch('http://10.10.1.99:4000/auth', {
+      const response = await fetch('http://10.10.5.129:4000/auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
