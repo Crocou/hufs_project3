@@ -125,3 +125,8 @@ export const deleteIntake = (intakeData) => {
   // intakeData는 { user, date, drink, time }을 포함해야 합니다.
   return sendRequestWithJWT('/intake', 'delete', intakeData);
 };
+
+// 사용자 삭제 (회원탈퇴)
+export const deleteUser = () => {
+  return sendRequestWithJWT('/user', 'delete');
+};

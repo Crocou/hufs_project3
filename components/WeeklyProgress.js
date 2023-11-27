@@ -11,6 +11,7 @@ const WeeklyProgress = () => {
     const fetchWeekIntakeData = async () => {
         try {
             const weekIntakeData = await getWeekIntake();
+            console.log(weekIntakeData)
             const formattedData = weekIntakeData.map(item => {
                 return {
                     value: item.total_sugar, // 당 섭취량
@@ -37,9 +38,9 @@ const WeeklyProgress = () => {
             xAxisLabelTextStyle={{color: 'lightgray', textAlign: 'center', fontSize: 10}}
             yAxisTextStyle={{ color: 'lightgray', fontSize: 10}}
             barWidth={18}
-            roundedTop
-            roundedBottom
             hideRules
+            barBorderRadius={4}
+            maxValue={150}
         /></View>
     );
 };

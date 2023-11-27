@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import { jwtDecode } from 'jwt-decode';
-import { getUserProfile } from '../service/apiService';
+import { getUserProfile, deleteUser } from '../service/apiService';
 import { AlertDialog, View, Box, VStack, Text, Button, Image, Divider } from 'native-base';
 import ProfileEditModal from '../components/ProfileEditModal';
 import { getJWT, deleteJWT } from '../service/authService';
@@ -93,6 +93,7 @@ export function ProfileScreen() {
         const fetchUserData = async () => {
             try {
                 const token = await getJWT();
+                console.log("JWT:", token);
                 if (token) {
                     const decodedToken = jwtDecode(token);
                     const userId = decodedToken.userId[0].u_id;
@@ -156,10 +157,24 @@ export function ProfileScreen() {
     };
 
     // 실제 회원 탈퇴 로직
-    const confirmWithdrawal = () => {
-        // 여기에 회원 탈퇴 처리 로직을 구현합니다.
-        closeWithdrawalAlert();
+    const confirmWithdrawal = async () => {
+        try {
+            // 서버에 회원 탈퇴 요청
+            await deleteUser();
+
+            // 로컬 스토리지에서 JWT 토큰 삭제
+            await deleteJWT();
+
+            // 회원 탈퇴 후 초기 화면으로 이동
+            navigation.navigate('Kakao');
+
+            closeWithdrawalAlert();
+        } catch (error) {
+            console.error('회원 탈퇴 실패:', error);
+            // 실패 시 적절한 오류 처리를 해야 합니다.
+        }
     };
+
 
     return (
         <Box flex={1} safeArea bg="white" >

@@ -12,21 +12,11 @@ const BasicProgress = ({ nutrient, currentAmount, goalAmount, unit }) => {
     return (
         <View style={styles.container}>
             <View style={[styles.box, { width: boxWidth, height: boxWidth }]}>
-                <Text style={[styles.nutrientText, { fontSize: 11 * fontSizeMultiplier }]}>
+                <Text style={[styles.nutrientText, { fontSize: 12 * fontSizeMultiplier }]}>
                     {`${nutrient} (${unit})`}
                 </Text>
-                <View style={[styles.progressBarContainer]}>
-                    <Progress
-                        value={progressValue}
-                        _filledTrack={{
-                            bg: "#9747FF"
-                          }}
-                        borderRadius={10 * fontSizeMultiplier}
-                        style={styles.progressBar}
-                    />
-                </View>
-                <Text style={[styles.amountText, { fontSize: 12 * fontSizeMultiplier }]}>
-                    {`${currentAmount} / ${goalAmount}`}
+                <Text style={[styles.amountText, { fontSize: 25 * fontSizeMultiplier }]}>
+                    {`${currentAmount}`}
                 </Text>
             </View>
         </View>
@@ -59,8 +49,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     amountText: {
-        color: 'gray',
-
+        color: 'black',
+        fontWeight: 'bold',
     },
 });
 
