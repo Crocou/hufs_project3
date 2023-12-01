@@ -128,7 +128,7 @@ export default function App() {
         // 사용자 ID가 있을 경우 서버에 확인 요청
         if (userId) {
           try {
-            const response = await fetch(`http://172.30.1.11:4000/auth/info?user_id=${userId}`);
+            const response = await fetch(`http://172.20.10.3:4000/auth/info?user_id=${userId}`);
             const data = await response.json();
             console.log('App/사용자 정보(DB 추출):', data);
 
@@ -154,8 +154,8 @@ export default function App() {
   return (
     <NativeBaseProvider>
       <NavigationContainer>
-        <AppNavigator userId={userId} userName={userName} />
-      </NavigationContainer>
+                  <AppNavigator userId={userId} userName={userName} />
+              </NavigationContainer>
     </NativeBaseProvider>
   );
 }

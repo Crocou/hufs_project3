@@ -97,7 +97,7 @@ app.get("/drink", (req, res) => {
       return;
     }
 
-    console.log("success");
+    console.log("(/drink)Fetching drink data...success");
     res.send(results);
   });
 });
@@ -118,6 +118,24 @@ app.get("/drink/:d_id", (req, res) => {
     } else {
       res.status(404).send({ message: "Drink not found" });
     }
+  });
+});
+
+// 커스텀 음료 목록 조회
+app.get("/customDrink", verifyJWT, (req, res) => {
+  const userId = req.u_id; // JWT 미들웨어에서 추출한 사용자 ID
+
+  const query = `
+    SELECT * FROM drink WHERE source = ?
+  `;
+
+  connection.query(query, [userId], (error, results) => {
+    if (error) {
+      console.error("Error retrieving custom drinks: ", error);
+      res.status(500).send({ message: "Error retrieving custom drinks" });
+      return;
+    }
+    res.status(200).send(results);
   });
 });
 
@@ -228,7 +246,7 @@ app.get("/user", verifyJWT, (req, res) => {
       res.status(500).send({ message: "Error retrieving users" });
       return;
     }
-    console.log("success");
+    console.log("(/user)Fetching user data...success");
     res.send(results);
   });
 });

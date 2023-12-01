@@ -41,7 +41,7 @@ const KakaoWebView = () => {
   // 인증 코드를 서버에 전송하고 JWT 토큰을 받는 함수입니다.
   const sendCodeToServer = async (code) => {
     try {
-      const response = await fetch('http://172.30.1.11:4000/auth', {
+      const response = await fetch('http://172.20.10.3:4000/auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ const KakaoWebView = () => {
           console.log('Webview/JWT에서 ID 추출:', extractedUserId);
 
           if (extractedUserId) {
-            const response = await fetch(`http://172.30.1.11:4000/auth/profile?user_id=${extractedUserId}`);
+            const response = await fetch(`http://172.20.10.3:4000/auth/profile?user_id=${extractedUserId}`);
             const data = await response.json();
             console.log('사용자 정보(DB 추출):', data);
 

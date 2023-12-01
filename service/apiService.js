@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getJWT } from './authService';
 
-const BASE_URL = 'http://172.30.1.11:4000';
+const BASE_URL = 'http://172.20.10.3:4000';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -66,6 +66,11 @@ export const getDrinkData = () => {
 // 특정 음료의 데이터 가져오기
 export const getDrinkDataById = (d_id) => {
   return sendRequestWithJWT(`/drink/${d_id}`, 'get');
+};
+
+//커스텀 음료 조회
+export const getCustomDrinks = () => {
+  return sendRequestWithJWT('/customDrink', 'get');
 };
 
 // 커스텀 음료 등록
