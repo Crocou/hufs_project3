@@ -88,21 +88,13 @@ function MyTabs() {
 
 // 앱의 메인 네비게이션 로직을 담당하는 컴포넌트
 function AppNavigator({ userId, userName }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!userId); // 사용자 인증 여부 상태
+  const isAuthenticated = !!userId;
 
-  useEffect(() => {
-    // 사용자 인증 여부에 따라 초기 화면 설정
-    setIsAuthenticated(!!userId);
-    const initialScreenName = isAuthenticated ? "Kakao" : "MainTabs";
-    console.log("Initial screen set to:", initialScreenName);
-  }, [userId]);
-
-  // 사용자 인증 여부에 따라 초기 화면 설정
   return (
     <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "MainTabs"}>
       <Stack.Screen name="Kakao" component={Kakao} options={{ headerShown: false }} />
-      <Stack.Screen name="KakaoWebView" component={KakaoWebView} />
-      <Stack.Screen name="LoginProfile" component={LoginProfileScreen} initialParams={{ userName: userName }} />
+      <Stack.Screen name="KakaoWebView" component={KakaoWebView} options={{ headerShown: false }} />
+      <Stack.Screen name="LoginProfile" component={LoginProfileScreen} initialParams={{ userName: userName }} options={{ headerShown: false }} />
       <Stack.Screen name="LoginProfile2" component={LoginProfileScreen2} options={{ headerShown: false }} />
       <Stack.Screen name="MainTabs" component={MyTabs} options={{ headerShown: false }} />
     </Stack.Navigator>
@@ -117,33 +109,33 @@ export default function App() {
     // JWT를 확인하여 사용자 인증 처리
     const verifyUserExists = async () => {
       const token = await getJWT(); // 토큰 불러오기
-      console.log('저장된 JWT:', token);
+      console.log('App/저장된 JWT:', token);
 
       if (token) {
         let decodedToken;
         try {
           decodedToken = jwtDecode(token);
-          console.log('디코딩된 토큰: ', decodedToken); // 디코딩된 토큰 로그 출력
+          console.log('App/디코딩된 토큰: ', decodedToken); // 디코딩된 토큰 로그 출력
         } catch (error) {
           console.error("Error decoding the token:", error);
           return;
         }
 
         // 토큰에서 사용자 ID 추출
-        const extractedUserId = decodedToken && decodedToken.userId && decodedToken.userId[0] && decodedToken.userId[0].u_id;
-        console.log('JWT에서 ID 추출:', extractedUserId);
+        const userId = decodedToken.userId[0].u_id;
+        console.log('App/JWT에서 ID 추출:', userId);
 
         // 사용자 ID가 있을 경우 서버에 확인 요청
-        if (extractedUserId) {
+        if (userId) {
           try {
-            const response = await fetch(`http://172.30.1.11:4000/auth/info?user_id=${extractedUserId}`);
+            const response = await fetch(`http://172.20.10.3:4000/auth/info?user_id=${userId}`);
             const data = await response.json();
-            console.log('사용자 정보(DB 추출):', data);
+            console.log('App/사용자 정보(DB 추출):', data);
 
             if (data.result && data.result.length > 0) {
-              console.log('DB에 사용자 존재함');
+              console.log('App/DB에 사용자 존재함');
               setUserId(data.result[0].u_id);
-              return <AppNavigator userId={userId} userName={decodedToken.userId[0].u_name} />;
+              setUserName(decodedToken.userId[0].u_name);
             } else {
               console.log('User not found in the database');
             }
@@ -162,8 +154,8 @@ export default function App() {
   return (
     <NativeBaseProvider>
       <NavigationContainer>
-        <AppNavigator userId={userId} userName={userName} />
-      </NavigationContainer>
+                  <AppNavigator userId={userId} userName={userName} />
+              </NavigationContainer>
     </NativeBaseProvider>
   );
 }

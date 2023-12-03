@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import { TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { Center, VStack, Input, View, HStack, InputRightElement } from "native-base";

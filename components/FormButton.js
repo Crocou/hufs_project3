@@ -1,15 +1,37 @@
 import { Text, Flex, Button, Modal, FormControl, Input, useToast } from "native-base";
-import { useState } from "react";
+import React, { useReducer, useState, useEffect } from 'react';
 import { Dimensions } from "react-native";
 import { AntDesign } from '@expo/vector-icons';
-import { addCustomDrink } from '../service/apiService'
 import useDrinks from '../hooks/useDrinks';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
+const initialState = {
+  manufacturer: "",
+  drinkName: "",
+  size: "",
+  kcal: "",
+  sugar: "",
+  caffeine: "",
+  protein: "",
+  fat: "",
+  natruim: ""
+};
+
+function formReducer(state, action) {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return { ...state, [action.field]: action.value };
+    case 'RESET_FIELDS':
+      return initialState;
+    default:
+      throw new Error();
+  }
+}
+
 // 영양 정보 입력 필드 컴포넌트
-const NutritionInfoInput = ({ label, value, onChangeText }) => (
+const NutritionInfoInput = ({ label, field, state, dispatch }) => (
   <Flex direction="row" align="center" width="45%">
     <Text fontSize="10px" flex={2}>
       {label}
@@ -18,8 +40,8 @@ const NutritionInfoInput = ({ label, value, onChangeText }) => (
       backgroundColor="#EEF1F4"
       borderColor="#EEF1F4"
       flex={1.7}
-      value={value}
-      onChangeText={onChangeText}
+      value={state[field]}
+      onChangeText={(text) => dispatch({ type: 'SET_FIELD', field, value: text })}
       keyboardType="decimal-pad"
     />
   </Flex>
@@ -30,48 +52,25 @@ export const FormButton = () => {
   const toast = useToast();
   const [showModal, setShowModal] = useState(false); // 모달 보이기/숨기기
   const [warningVisible, setWarningVisible] = useState(false); // 경고 메시지 표시
-  const { addDrink } = useDrinks();
+  const { addDrink } = useDrinks(); // useDrinks 대신 useDrinksContext 사용
+  const [state, dispatch] = useReducer(formReducer, initialState);
+  const [isInputFilled, setIsInputFilled] = useState(false);
 
-  // 입력 필드들의 상태
-  const [manufacturer, setManufacturer] = useState("");
-  const [drinkName, setDrinkName] = useState("");
-  const [size, setSize] = useState("");
-  const [kcal, setKcal] = useState("");
-  const [sugar, setSugar] = useState("");
-  const [caffeine, setCaffeine] = useState("");
-  const [protein, setProtein] = useState("");
-  const [fat, setFat] = useState("");
-  const [natruim, setNatruim] = useState("");
-
-  // 입력 필드들이 모두 채워졌는지 확인하는 함수
+  // 입력 필드들이 모두 채워졌는지 확인
   const inputFilled = () => {
-    return (
-      manufacturer &&
-      drinkName &&
-      size &&
-      kcal &&
-      sugar &&
-      caffeine &&
-      protein &&
-      fat &&
-      natruim
-    );
+    return Object.values(state).every(value => value);
   };
 
-  // 입력 필드들이 모두 채워졌는지 확인하는 함수
+  useEffect(() => {
+    setIsInputFilled(inputFilled()); // 상태가 변경될 때마다 inputFilled 함수를 호출하여 결과를 저장
+  }, [state]); // state 객체가 변경될 때마다 useEffect를 실행
+
+
+  // 입력 필드 초기화
   const resetFields = () => {
-    setManufacturer("");
-    setDrinkName("");
-    setSize("");
-    setKcal("");
-    setSugar("");
-    setCaffeine("");
-    setProtein("");
-    setFat("");
-    setNatruim("");
+    dispatch({ type: 'RESET_FIELDS' });
   };
 
-  // 입력 필드들이 모두 채워졌는지 확인하는 함수
   const handleModalClose = () => {
     resetFields();
     setWarningVisible(false);
@@ -82,20 +81,19 @@ export const FormButton = () => {
   const handleSubmit = async () => {
     if (inputFilled()) {
       const drinkData = {
-        d_name: drinkName,
-        manuf: manufacturer,
-        size: parseFloat(size),
-        kcal: parseFloat(kcal),
-        sugar: parseFloat(sugar),
-        caffeine: parseFloat(caffeine),
-        protein: parseFloat(protein),
-        fat: parseFloat(fat),
-        natrium: parseFloat(natruim),
+        d_name: state.drinkName,
+        manuf: state.manufacturer,
+        size: parseFloat(state.size),
+        kcal: parseFloat(state.kcal),
+        sugar: parseFloat(state.sugar),
+        caffeine: parseFloat(state.caffeine),
+        protein: parseFloat(state.protein),
+        fat: parseFloat(state.fat),
+        natrium: parseFloat(state.natruim),
       };
   
       // 데이터베이스에 음료 정보를 등록
       try {
-        await addCustomDrink(drinkData);
         await addDrink(drinkData); 
         console.log("음료 정보가 성공적으로 등록되었습니다.");
         toast.show({ title: "음료 추가 완료" });
@@ -112,8 +110,8 @@ export const FormButton = () => {
   };
 
   return (
-    <> 
-      <Button 
+    <>
+      <Button
         backgroundColor="white"
         onPress={() => setShowModal(true)}>
         <AntDesign name="form" size={24} color="#9747FF" />
@@ -127,8 +125,8 @@ export const FormButton = () => {
               <FormControl.Label>제조사명</FormControl.Label>
               <Input
                 placeholder="내가 생성"
-                value={manufacturer}
-                onChangeText={setManufacturer}
+                value={state.manufacturer}
+                onChangeText={(text) => dispatch({ type: 'SET_FIELD', field: 'manufacturer', value: text })}
                 backgroundColor="#EEF1F4"
                 borderColor="#EEF1F4"
               />
@@ -136,8 +134,8 @@ export const FormButton = () => {
             <FormControl mt="3">
               <FormControl.Label>음료명</FormControl.Label>
               <Input
-                value={drinkName}
-                onChangeText={setDrinkName}
+                value={state.drinkName}
+                onChangeText={(text) => dispatch({ type: 'SET_FIELD', field: 'drinkName', value: text })}
                 backgroundColor="#EEF1F4"
                 borderColor="#EEF1F4"
               />
@@ -145,21 +143,20 @@ export const FormButton = () => {
             <FormControl mt="5">
               <FormControl.Label>제품 영양 정보</FormControl.Label>
               <Flex justifyContent="space-between" flexDirection="row">
-                <NutritionInfoInput label="용량(ml)" value={size} onChangeText={setSize} />
-                <NutritionInfoInput label="열량(kcal)" value={kcal} onChangeText={setKcal} />
+                <NutritionInfoInput label="용량(ml)" field="size" state={state} dispatch={dispatch} />
+                <NutritionInfoInput label="열량(kcal)" field="kcal" state={state} dispatch={dispatch} />
               </Flex>
               <Flex justifyContent="space-between" flexDirection="row" mt={2}>
-                <NutritionInfoInput label="당류(g)" value={sugar} onChangeText={setSugar} />
-                <NutritionInfoInput label="카페인(mg)" value={caffeine} onChangeText={setCaffeine} />
+                <NutritionInfoInput label="당류(g)" field="sugar" state={state} dispatch={dispatch} />
+                <NutritionInfoInput label="카페인(mg)" field="caffeine" state={state} dispatch={dispatch} />
               </Flex>
               <Flex justifyContent="space-between" flexDirection="row" mt={2}>
-                <NutritionInfoInput label="단백질(g)" value={protein} onChangeText={setProtein} />
-                <NutritionInfoInput label="지방(g)" value={fat} onChangeText={setFat} />
+                <NutritionInfoInput label="단백질(g)" field="protein" state={state} dispatch={dispatch} />
+                <NutritionInfoInput label="지방(g)" field="fat" state={state} dispatch={dispatch} />
               </Flex>
               <Flex justifyContent="space-between" flexDirection="row" mt={2}>
-                <NutritionInfoInput label="나트륨(mg)" value={natruim} onChangeText={setNatruim} />
+                <NutritionInfoInput label="나트륨(mg)" field="natruim" state={state} dispatch={dispatch} />
               </Flex>
-
             </FormControl>
           </Modal.Body>
 
@@ -170,14 +167,13 @@ export const FormButton = () => {
             <Button
               width="60%"
               borderRadius="30"
-              bg={inputFilled() ? '#9747FF' : 'lightgray'}
+              bg={isInputFilled ? '#9747FF' : 'lightgray'} // isInputFilled 상태에 따라 배경색 결정
               color='white'
-              onPress={inputFilled() ? handleSubmit : null}
-              disabled={!inputFilled()}
+              onPress={isInputFilled ? handleSubmit : null} // isInputFilled 상태에 따라 동작 결정
+              disabled={!isInputFilled} // isInputFilled 상태에 따라 활성화/비활성화 결정
             >
               저장하기
             </Button>
-
           </Modal.Footer>
 
         </Modal.Content>

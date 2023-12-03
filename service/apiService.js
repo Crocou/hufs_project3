@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getJWT } from './authService';
 
-const BASE_URL = 'http://10.10.5.129:4000';
+const BASE_URL = 'http://172.20.10.3:4000';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -68,6 +68,11 @@ export const getDrinkDataById = (d_id) => {
   return sendRequestWithJWT(`/drink/${d_id}`, 'get');
 };
 
+//커스텀 음료 조회
+export const getCustomDrinks = () => {
+  return sendRequestWithJWT('/customDrink', 'get');
+};
+
 // 커스텀 음료 등록
 export const addCustomDrink = (drinkData) => {
   return sendRequestWithJWT('/customDrink', 'post', drinkData);
@@ -124,4 +129,9 @@ export const getWeekIntake = () => {
 export const deleteIntake = (intakeData) => {
   // intakeData는 { user, date, drink, time }을 포함해야 합니다.
   return sendRequestWithJWT('/intake', 'delete', intakeData);
+};
+
+// 사용자 삭제 (회원탈퇴)
+export const deleteUser = () => {
+  return sendRequestWithJWT('/user', 'delete');
 };

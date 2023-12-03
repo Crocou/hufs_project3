@@ -30,13 +30,16 @@ export default function ProfileEditModal({ isVisible, onClose, profileData, setP
 
     const handleSave = async () => {
         try {
-            await updateUser(editedProfile); // 프로필 업데이트 API 호출
-            setProfileData(editedProfile); // 상태 업데이트
+            // editedProfile에 변경되지 않은 기존 profileData 값들을 합칩니다.
+            const updatedProfile = { ...profileData, ...editedProfile };
+            await updateUser(updatedProfile); // 프로필 업데이트 API 호출
+            setProfileData(updatedProfile); // 상태 업데이트
             onClose(); // 모달 닫기
         } catch (error) {
             console.error("프로필 업데이트 실패:", error);
         }
     };
+    
 
     const handleClose = () => {
         setEditedProfile({});
@@ -48,7 +51,7 @@ export default function ProfileEditModal({ isVisible, onClose, profileData, setP
             <Modal isOpen={isVisible} onClose={handleClose}>
                 <Modal.Content maxWidth="400px" width={windowWidth * 0.9} height={windowHeight * 0.6}>
                     <Modal.CloseButton />
-                    <Modal.Header>프로필 수정</Modal.Header>
+                    <Modal.Header borderBottomWidth={0}>프로필 수정</Modal.Header>
                     <Modal.Body justifyContent="center" alignItems="center">
 
                         <VStack space={6} justifyContent="center" alignItems="center">
@@ -59,7 +62,7 @@ export default function ProfileEditModal({ isVisible, onClose, profileData, setP
                                     placeholder={profileData.height ? profileData.height.toString() : '입력하세요'}
                                     value={editedProfile.height ? editedProfile.height.toString() : ''}
                                     keyboardType="numeric"
-                                    onChangeText={(text) => setEditedProfile({ ...editedProfile, height: text })}
+                                    onChangeText={(text) => setEditedProfile(prevProfile => ({ ...prevProfile, height: text }))}
                                     textAlign="center"
                                 />
                             </FormControl>
@@ -71,7 +74,7 @@ export default function ProfileEditModal({ isVisible, onClose, profileData, setP
                                     placeholder={profileData.weight ? profileData.weight.toString() : '입력하세요'}
                                     value={editedProfile.weight ? editedProfile.weight.toString() : ''}
                                     keyboardType="numeric"
-                                    onChangeText={(text) => setEditedProfile({ ...editedProfile, weight: text })}
+                                    onChangeText={(text) => setEditedProfile(prevProfile => ({ ...prevProfile, weight: text }))}
                                     textAlign="center"
                                 />
                             </FormControl>
@@ -83,7 +86,7 @@ export default function ProfileEditModal({ isVisible, onClose, profileData, setP
                                     placeholder={profileData.age ? profileData.age.toString() : '입력하세요'}
                                     value={editedProfile.age ? editedProfile.age.toString() : ''}                            
                                     keyboardType="numeric"
-                                    onChangeText={(text) => setEditedProfile({ ...editedProfile, age: text })}
+                                    onChangeText={(text) => setEditedProfile(prevProfile => ({ ...prevProfile, age: text }))}
                                     textAlign="center"
                                 />
                             </FormControl>
@@ -95,7 +98,7 @@ export default function ProfileEditModal({ isVisible, onClose, profileData, setP
                                     placeholder={profileData.u_sugar_gram ? profileData.u_sugar_gram.toString() : '입력하세요'}
                                     value={editedProfile.u_sugar_gram ? editedProfile.u_sugar_gram.toString() : ''}                            
                                     keyboardType="numeric"
-                                    onChangeText={(text) => setEditedProfile({ ...editedProfile, u_sugar_gram: text })}
+                                    onChangeText={(text) => setEditedProfile(prevProfile => ({ ...prevProfile, u_sugar_gram: text }))}
                                     textAlign="center"
                                 />
                             </FormControl>

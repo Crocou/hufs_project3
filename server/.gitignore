@@ -3,3 +3,7 @@
 
 #jwt_key
 /jwt.json
+
+/createJWT.js
+/getUserToken.js
+/userDao.js

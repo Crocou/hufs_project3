@@ -43,7 +43,10 @@ const RecommendationText = ({ sugarGrams, onSugarGramsChange, userName }) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.recommendationContainer}>
-        <Text style={styles.text1}>{userName}님의</Text>
+        <View flexDirection="row" alignItems="center">
+        <Text style={styles.text0}>{userName}</Text>
+        <Text style={styles.text1}> 님의</Text>
+        </View>
         <Text style={styles.text1}>건강을 위해 추천드리는 당 섭취량은</Text>
         <Text style={styles.text2}>일일</Text>
         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
@@ -148,6 +151,12 @@ const styles = StyleSheet.create({
   recommendationContainer: {
     marginBottom: 30,
     alignItems: 'center',
+  },
+  text0: {
+    fontSize: 20,
+    textAlign: 'center',
+    marginBottom: 3,
+    fontWeight: 'bold'
   },
   text1: {
     fontSize: 16,

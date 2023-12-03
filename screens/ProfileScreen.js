@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet } from 'react-native';
-import { getJWT } from '../service/authService';
 import { jwtDecode } from 'jwt-decode';
-import { getUserProfile } from '../service/apiService';
-import { View, Box, VStack, Text, Button, Image, Divider } from 'native-base';
+import { getUserProfile, deleteUser } from '../service/apiService';
+import { AlertDialog, View, Box, VStack, Text, Button, Image, Divider } from 'native-base';
 import ProfileEditModal from '../components/ProfileEditModal';
+import { getJWT, deleteJWT } from '../service/authService';
+import { useNavigation } from '@react-navigation/native';
 
 function renderUserProfile(profileData) {
     return Object.entries(profileData).map(([key, value]) => {
@@ -78,6 +79,10 @@ function renderUserProfile(profileData) {
 export function ProfileScreen() {
     const [profileData, setProfileData] = useState({});
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isLogoutAlertVisible, setIsLogoutAlertVisible] = useState(false);
+    const [isWithdrawalAlertVisible, setIsWithdrawalAlertVisible] = useState(false);
+    const cancelRef = useRef(null);
+    const navigation = useNavigation();
 
     const openModal = () => setIsModalVisible(true);
     const closeModal = () => setIsModalVisible(false);
@@ -88,6 +93,7 @@ export function ProfileScreen() {
         const fetchUserData = async () => {
             try {
                 const token = await getJWT();
+                console.log("JWT:", token);
                 if (token) {
                     const decodedToken = jwtDecode(token);
                     const userId = decodedToken.userId[0].u_id;
@@ -104,20 +110,80 @@ export function ProfileScreen() {
         fetchUserData();
     }, []);
 
-    // 로그아웃과 회원 탈퇴 기능을 구현하는 함수
-    const handleLogout = () => {
-        // 로그아웃 처리
+    // 로그아웃 확인 다이얼로그를 엽니다.
+    const openLogoutAlert = () => setIsLogoutAlertVisible(true);
+
+    // 로그아웃 확인 다이얼로그를 닫습니다.
+    const closeLogoutAlert = () => setIsLogoutAlertVisible(false);
+
+    // 로그아웃을 구현하는 함수
+    const handleLogout = async () => {
+        try {
+            const token = await getJWT()
+            console.log('현재 JWT 토큰:', token);
+
+            // 카카오 로그아웃 API 요청
+            const response = await fetch('https://kapi.kakao.com/v1/user/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
+
+            const data = await response.json(); // 응답을 JSON 형태로 변환
+            console.log('카카오 로그아웃 응답:', data);
+
+            // 로컬 스토리지에서 JWT 토큰 삭제
+            await deleteJWT();
+            closeLogoutAlert();
+
+            // 초기 화면으로 이동
+            navigation.navigate('Kakao');
+        } catch (error) {
+            console.error('로그아웃 실패:', error);
+        }
     };
 
+    // 회원 탈퇴 확인 다이얼로그를 엽니다.
+    const openWithdrawalAlert = () => setIsWithdrawalAlertVisible(true);
+
+    // 회원 탈퇴 확인 다이얼로그를 닫습니다.
+    const closeWithdrawalAlert = () => setIsWithdrawalAlertVisible(false);
+
+    // 회원 탈퇴 처리 함수
     const handleWithdrawal = () => {
-        // 회원 탈퇴 처리
+        openWithdrawalAlert();
     };
+
+    // 실제 회원 탈퇴 로직
+    const confirmWithdrawal = async () => {
+        try {
+            // 서버에 회원 탈퇴 요청
+            await deleteUser();
+
+            // 로컬 스토리지에서 JWT 토큰 삭제
+            await deleteJWT();
+
+            // 회원 탈퇴 후 초기 화면으로 이동
+            navigation.navigate('Kakao');
+
+            closeWithdrawalAlert();
+        } catch (error) {
+            console.error('회원 탈퇴 실패:', error);
+            // 실패 시 적절한 오류 처리를 해야 합니다.
+        }
+    };
+
 
     return (
-        <Box flex={1} safeArea bg="white">
+        <Box flex={1} safeArea bg="white" >
 
-            {/* 프로필 수정 버튼 */}
-            <Button onPress={openModal}>프로필 수정</Button>
+            <View alignItems="flex-end" width="95%">
+                <Text onPress={openModal} color="light.300">
+                    프로필 수정
+                </Text>
+            </View>
 
             {/* 모달 컴포넌트 */}
             <ProfileEditModal
@@ -132,7 +198,7 @@ export function ProfileScreen() {
                 <Box
                     bg="white"
                     p={10}
-                    width="80%"
+                    width="90%"
                     rounded="md"
                     borderColor="coolGray.200"
                     borderWidth="1"
@@ -145,14 +211,107 @@ export function ProfileScreen() {
                 </Box>
             </View>
 
+            {/* 로그아웃 확인 AlertDialog */}
+            <AlertDialog
+                leastDestructiveRef={cancelRef}
+                isOpen={isLogoutAlertVisible}
+                onClose={closeLogoutAlert}
+            >
+                <AlertDialog.Content>
+                    <AlertDialog.CloseButton />
+                    <AlertDialog.Header borderBottomWidth={0}>로그아웃</AlertDialog.Header>
+                    <AlertDialog.Body justifyContent="center" alignItems="center">
+                        로그아웃하시겠습니까?
+                    </AlertDialog.Body>
+                    <AlertDialog.Footer justifyContent="center" alignItems="center" borderTopWidth={0}>
+                        <Button
+                            bg="transparent"
+                            borderRadius="full"
+                            borderWidth="1"
+                            borderColor="red.600"
+                            variant="unstyled"
+                            colorScheme="coolGray"
+                            onPress={closeLogoutAlert}
+                            ref={cancelRef}
+                            width="70"
+                        >
+                            취소
+                        </Button>
+                        <Button borderRadius="20" colorScheme="danger" onPress={handleLogout} ml={3}>
+                            로그아웃
+                        </Button>
+                    </AlertDialog.Footer>
+                </AlertDialog.Content>
+            </AlertDialog>
+
+            {/* 회원 탈퇴 확인 AlertDialog */}
+            <AlertDialog
+                leastDestructiveRef={cancelRef}
+                isOpen={isWithdrawalAlertVisible}
+                onClose={closeWithdrawalAlert}
+            >
+                <AlertDialog.Content>
+                    <AlertDialog.CloseButton />
+                    <AlertDialog.Header borderBottomWidth={0}>회원 탈퇴</AlertDialog.Header>
+                    <AlertDialog.Body justifyContent="center" alignItems="center">
+                        <Text>정말로 탈퇴하시겠습니까? </Text>
+                        <Text>이 작업은 되돌릴 수 없습니다.</Text>
+                    </AlertDialog.Body>
+                    <AlertDialog.Footer justifyContent="center" alignItems="center" borderTopWidth={0}>
+                        <Button
+                            bg="transparent"
+                            borderRadius="full"
+                            borderWidth="1"
+                            borderColor="coolGray.400"
+                            variant="unstyled"
+                            colorScheme="coolGray"
+                            onPress={closeWithdrawalAlert}
+                            ref={cancelRef}
+                            width="70"
+                        >
+                            취소
+                        </Button>
+                        <Button borderRadius="20" colorScheme="danger" onPress={confirmWithdrawal} ml={3}>
+                            탈퇴하기
+                        </Button>
+                    </AlertDialog.Footer>
+                </AlertDialog.Content>
+            </AlertDialog>
+
             {/* 로그아웃 및 탈퇴 버튼 */}
             <View flex={1} justifyContent="flex-end" alignItems="center" mb={4}>
-                <Button colorScheme="indigo" onPress={handleLogout}>
+                <Button
+                    mb="3"
+                    width="200"
+                    bg="purple.600"
+                    borderRadius="full"
+                    borderWidth="0"
+                    borderColor="transparent"
+                    _text={{
+                        color: 'white',
+                        fontWeight: 'medium',
+                    }}
+                    onPress={openLogoutAlert}
+                >
                     로그아웃
                 </Button>
-                <Button mt={2} colorScheme="secondary" onPress={handleWithdrawal}>
+
+                <Button
+                    width="200"
+                    bg="transparent"
+                    borderRadius="full"
+                    borderWidth="1"
+                    borderColor="purple.600"
+                    _text={{
+                        color: 'purple.600',
+                        fontWeight: 'medium',
+                    }}
+
+                    onPress={handleWithdrawal}
+                >
                     탈퇴하기
                 </Button>
+
             </View>
         </Box>
     );

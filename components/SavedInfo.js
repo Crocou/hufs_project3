@@ -16,6 +16,7 @@ const SavedInfoItem = ({ data, onSelect }) => {
   const toast = useToast();
   const [isStarred, setIsStarred] = useState(false); // 즐겨찾기 여부 상태
   const formatValue = value => value % 1 === 0 ? Math.floor(value) : value;
+
   useEffect(() => {
     // 즐겨찾기 상태를 확인하는 함수
     const checkFavoriteStatus = async () => {
@@ -28,40 +29,43 @@ const SavedInfoItem = ({ data, onSelect }) => {
     };
     checkFavoriteStatus();
   }, [data.id]);
+
   // 즐겨찾기 버튼을 처리하는 함수
   const handleStarPress = async () => {
-    try {
+        try {
       if (isStarred) {
-        toast.show({ title: "즐겨찾기 해제 완료", duration: 100, placement: "top" });
         await removeFav(data.id);
+        console.log("Fav data deleted successfully.");
+        toast.show({ title: "즐겨찾기 해제 완료", duration: 1000, placement: "bottom" });
       } else {
-        toast.show({ title: "즐겨찾기 등록 완료", duration: 100, placement: "top" });
         await addFav(data.id);
+        console.log("Fav data added successfully.");
+        toast.show({ title: "즐겨찾기 등록 완료", duration: 1000, placement: "bottom" });
       }
       setIsStarred(!isStarred); // 상태 반전
     } catch (error) {
       console.error("Error updating favorite status:", error);
     }
-  };
+      };
+
   // 섭취 정보를 추가하는 함수
   const handleAddIntake = async () => {
-    try {
-      // 현재 날짜와 시간을 가져옵니다.
+        try {
       const currentDate = new Date();
       const formattedDateTime = `${currentDate.toISOString().split('T')[0]}`;
       const intakeData = {
         date: formattedDateTime,
         drink: data.id,
-        time: currentDate.getHours() * 100 + currentDate.getMinutes() // HHMM 형식으로 변환 (이 부분은 필요에 따라 수정하실 수 있습니다.)
+        time: currentDate.getHours() * 100 + currentDate.getMinutes()
       };
       await addIntake(intakeData);
       console.log("Intake data added successfully.");
-      toast.show({ title: "섭취 목록 추가 완료", duration: 100, placement: "top" });
+      toast.show({ title: "섭취 목록 추가 완료", duration: 1000, placement: "bottom" });
     } catch (error) {
       console.error("Error adding intake data:", error);
     }
-  };
-  // UI 구성 및 이벤트 핸들링
+      };
+
   return (
     <TouchableWithoutFeedback onPress={() => onSelect(data)}>
       <Box {...styles.box}>
@@ -111,7 +115,8 @@ const SavedInfoItem = ({ data, onSelect }) => {
 
 // 저장된 음료 정보 전체 목록을 관리하는 컴포넌트
 const SavedInfo = ({ searchTerm, onSelect, drinks }) => {
-  // 매핑된 음료 데이터
+  console.log("SI/drinks: ", drinks)
+    // 매핑된 음료 데이터
   const mappedDrinks = drinks.map(item => ({
     drinkName: item.d_name,
     manufacturer: item.manuf,
@@ -130,9 +135,9 @@ const SavedInfo = ({ searchTerm, onSelect, drinks }) => {
   // 검색어를 사용하여 목록을 필터링
   const filteredData = searchTerm
     ? mappedDrinks.filter(item =>
-        item.drinkName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      item.drinkName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : mappedDrinks;
 
   // 항목이 선택되었을 때의 처리
@@ -141,7 +146,7 @@ const SavedInfo = ({ searchTerm, onSelect, drinks }) => {
     if (onSelect) {
       onSelect(selectedItem);
     }
-  };
+    };  
 
   // UI 구성 및 리스트 렌더링
   return (
@@ -153,7 +158,7 @@ const SavedInfo = ({ searchTerm, onSelect, drinks }) => {
       justifyContent="center"
       flex={1}
     >
-      <FlatList
+            <FlatList
         data={filteredData} // 필터링된 데이터를 사용
         renderItem={({ item }) => <SavedInfoItem data={item} onSelect={handleItemSelect} />}
         keyExtractor={(item, index) => index.toString()}

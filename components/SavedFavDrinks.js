@@ -3,7 +3,6 @@ import { Text, Flex, Box, useToast } from "native-base";
 import { AntDesign } from '@expo/vector-icons';
 import { FlatList, TouchableWithoutFeedback } from 'react-native';
 import { getDrinkData, getFav, addFav, removeFav, addIntake } from "../service/apiService";
-import SavedInfoFrame from "./SavedInfoFrame";
 
 // 영양소 이름과 한국어 매핑 정보
 const nutritionMapping = {
@@ -15,8 +14,9 @@ const nutritionMapping = {
 // 개별 저장 정보 항목 컴포넌트
 const SavedFavItem = ({ data, onSelect, onRefresh }) => {
   const toast = useToast();
-  const [isStarred, setIsStarred] = useState(false); // 즐겨찾기 여부 상태
+  const [isStarred, setIsStarred] = useState(false);
   const formatValue = value => value % 1 === 0 ? Math.floor(value) : value;
+
   useEffect(() => {
     // 즐겨찾기 상태를 확인하는 함수
     const checkFavoriteStatus = async () => {
@@ -29,35 +29,38 @@ const SavedFavItem = ({ data, onSelect, onRefresh }) => {
     };
     checkFavoriteStatus();
   }, [data.id]);
+
   // 즐겨찾기 버튼을 처리하는 함수
   const handleStarPress = async () => {
     try {
       if (isStarred) {
         await removeFav(data.id);
         toast.show({ title: "즐겨찾기 해제 완료", duration: 1000, placement: "bottom" });
+        setIsStarred(!isStarred);
+        onRefresh();
       } else {
         await addFav(data.id);
         toast.show({ title: "즐겨찾기 등록 완료", duration: 1000, placement: "bottom" });
+        setIsStarred(!isStarred);
+        onRefresh();
       }
-      setIsStarred(!isStarred); // 상태 반전
     } catch (error) {
       console.error("Error updating favorite status:", error);
     }
-
   };
+
   // 섭취 정보를 추가하는 함수
   const handleAddIntake = async () => {
     try {
-      // 현재 날짜와 시간을 가져옵니다.
       const currentDate = new Date();
       const formattedDateTime = `${currentDate.toISOString().split('T')[0]}`;
       const intakeData = {
         date: formattedDateTime,
         drink: data.id,
-        time: currentDate.getHours() * 100 + currentDate.getMinutes() // HHMM 형식으로 변환 (이 부분은 필요에 따라 수정하실 수 있습니다.)
+        time: currentDate.getHours() * 100 + currentDate.getMinutes()
       };
       await addIntake(intakeData);
-      toast.show({ title: "섭취 목록 추가 완료", duration: 1000, placement: "bottom"});
+      toast.show({ title: "섭취 목록 추가 완료", duration: 1000, placement: "bottom" });
       console.log("Intake data added successfully.");
       onRefresh();
     } catch (error) {
@@ -114,45 +117,54 @@ const SavedFavItem = ({ data, onSelect, onRefresh }) => {
 
 // 저장된 음료 정보 전체 목록을 관리하는 컴포넌트
 const SavedFav = ({ onRefresh, onSelect }) => {
-  const toast = useToast();
-  const [savedData, setSavedData] = useState([]); // 저장된 음료 데이터 상태
+  const [savedData, setSavedData] = useState([]);
+  const [refreshToggle, setRefreshToggle] = useState(false);
 
-  //즐겨찾기 음료 데이터 불러오기
+  // 즐겨찾기 목록을 가져오는 함수
+  const fetchFavorites = async () => {
+    try {
+      const favorites = await getFav();
+      const favoriteIds = new Set(favorites.map(fav => fav.drink));
+      const allDrinks = await getDrinkData();
+      const filteredDrinks = allDrinks.filter(drink => favoriteIds.has(drink.d_id));
+
+      const mappedData = filteredDrinks.map(item => ({
+        drinkName: item.d_name,
+        manufacturer: item.manuf,
+        sugar: item.sugar,
+        caffeine: item.caffeine,
+        id: item.d_id,
+        size: item.size,
+        kcal: item.kcal,
+        protein: item.protein,
+        natrium: item.natrium,
+        fat: item.fat,
+        grade: item.grade,
+        source: item.source
+      }));
+
+      setSavedData(mappedData);
+    } catch (error) {
+      console.error("Error fetching drinks:", error);
+    }
+  };
+  // 즐겨찾기 목록을 새로 고침하는 함수
+  const handleRefresh = () => {
+    setRefreshToggle(!refreshToggle); // 새로고침 토글 상태를 반전시켜 useEffect를 트리거합니다.
+  };
+
+  // 항목이 선택되었을 때의 처리
+  const handleItemSelect = (selectedItem) => {
+    console.log('Selected item:', selectedItem);
+    if (onSelect) {
+      onSelect(selectedItem);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const favorites = await getFav(); // 즐겨찾기 목록 가져오기
-        const favoriteIds = new Set(favorites.map(fav => fav.drink)); // 즐겨찾기 음료 ID 목록 생성
+    fetchFavorites();
+  }, [refreshToggle]); // refreshToggle 상태가 변경될 때마다 fetchFavorites 함수를 호출합니다.
 
-        const allDrinks = await getDrinkData(); // 모든 음료 데이터 가져오기
-
-        // 즐겨찾기에 포함된 음료만 필터링
-        const filteredDrinks = allDrinks.filter(drink => favoriteIds.has(drink.d_id));
-
-        // 필터링된 데이터 매핑
-        const mappedData = filteredDrinks.map(item => ({
-          drinkName: item.d_name,
-          manufacturer: item.manuf,
-          sugar: item.sugar,
-          caffeine: item.caffeine,
-          id: item.d_id,
-          size: item.size,
-          kcal: item.kcal,
-          protein: item.protein,
-          natrium: item.natrium,
-          fat: item.fat,
-          grade: item.grade,
-          source: item.source
-        }));
-
-        setSavedData(mappedData);
-      } catch (error) {
-        console.error("Error fetching drinks:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   // savedData 상태 변화 추적
   useEffect(() => {
@@ -173,11 +185,11 @@ const SavedFav = ({ onRefresh, onSelect }) => {
         data={savedData}
         renderItem={({ item }) => (
           <SavedFavItem
-              data={item}
-              onSelect={onSelect}
-              onRefresh={onRefresh}
+            data={item}
+            onSelect={handleItemSelect}
+            onRefresh={onRefresh}
           />
-      )}
+        )}
         keyExtractor={(item, index) => item.id.toString()}
         contentContainerStyle={{ alignItems: 'center', paddingBottom: 20 }}
         onStartShouldSetResponderCapture={() => true}
@@ -207,5 +219,4 @@ const styles = {
   }
 };
 export default SavedFav;
-
 

@@ -6,7 +6,7 @@ import { NativeBaseProvider, Text } from 'native-base';
 import CircularProgress from '../components/CircularProgress';
 import BasicProgress from '../components/BasicProgress';
 import WeeklyProgress from '../components/WeeklyProgress';
-import { getDrinkDataById, getTodayIntake } from '../service/apiService';
+import { getDrinkDataById, getTodayIntake, getWeekIntake } from '../service/apiService';
 import IntakeModal from '../components/IntakeModal';
 
 function formatNutrientValue(value) {
@@ -24,9 +24,10 @@ function formatNutrientValue(value) {
 
 export function ReportScreen({ }) {
   const isFocused = useIsFocused();
-  const [intakes, setIntakes] = useState([]); 
+  const [intakes, setIntakes] = useState([]);
   const windowWidth = Dimensions.get('window').width;
   const [isModalVisible, setModalVisible] = useState(false);
+  const [weeklyIntakeData, setWeeklyIntakeData] = useState([]);
 
   const [nutritionData, setNutritionData] = useState({
     sugar: 0,
@@ -41,14 +42,12 @@ export function ReportScreen({ }) {
     try {
       // 현재 날짜에 해당하는 섭취 내역 가져오기
       const intakes = await getTodayIntake(); // getIntake() 대신 getTodayIntake() 사용
-      console.log("intakes",intakes)
+      console.log("RS/Today intakes: ", intakes)
       setIntakes(intakes); // 오류 수정: 올바른 변수 이름을 사용
 
       // 각 섭취한 음료의 ID를 기반으로 영양 정보를 가져옵니다.
       const drinksPromises = intakes.map(intake => getDrinkDataById(intake.d_id));
-      console.log("drinksPromises", drinksPromises);
       const drinksData = await Promise.all(drinksPromises);
-      console.log("drinksData", drinksData); // 이 줄이 음료 데이터 로깅
 
       // 섭취에 기반한 총 영양소 계산
       const totals = drinksData.reduce((acc, data) => {
@@ -68,10 +67,20 @@ export function ReportScreen({ }) {
     }
   };
 
+  const fetchWeekIntakeData = async () => {
+    try {
+      const data = await getWeekIntake();
+      setWeeklyIntakeData(data);
+      console.log("RS/Weekly intakes: ", data)
+    } catch (error) {
+      console.error("주간 섭취 데이터를 불러오는데 실패했습니다", error);
+    }
+  };
+
   const refreshData = async () => {
     try {
-      const intakes = await getTodayIntake();
-      setIntakes(intakes);
+      fetchNutritionData();
+      fetchWeekIntakeData();
     } catch (error) {
       console.error("데이터 불러오기 실패:", error);
     }
@@ -81,7 +90,6 @@ export function ReportScreen({ }) {
     setModalVisible(!isModalVisible);
     if (isModalVisible) {
       refreshData();
-      fetchNutritionData();
     }
   };
 
@@ -134,20 +142,23 @@ export function ReportScreen({ }) {
 
   useEffect(() => {
     refreshData();
-    fetchNutritionData();
   }, [isFocused]);
 
   return (
     <NativeBaseProvider>
       <View style={dynamicStyles.container}>
-        
+
         <View style={dynamicStyles.todayText}>
           <View style={dynamicStyles.textContainer}>
             <Text bold mb="0.5">Today</Text>
           </View>
           <View style={dynamicStyles.textContainer}>
             <Text fontSize="xs" color="lightgray" onPress={toggleModal}>더보기</Text>
-            <IntakeModal isVisible={isModalVisible} onClose={toggleModal} intakes={intakes} />
+            <IntakeModal
+              isVisible={isModalVisible}
+              onClose={toggleModal} intakes={intakes}
+              onItemDeleted={() => console.log("아이템이 삭제되었습니다.")}
+            />
           </View>
         </View>
 
@@ -170,7 +181,7 @@ export function ReportScreen({ }) {
         </View>
 
         <View style={dynamicStyles.weekly}>
-          <WeeklyProgress />
+          <WeeklyProgress weeklyData={weeklyIntakeData} />
         </View>
       </View>
     </NativeBaseProvider>

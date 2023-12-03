@@ -12,6 +12,7 @@ const { getToken } = require("./getUserToken");
 const { getInfo } = require("./getUserToken");
 const { createJWT } = require("./createJWT");
 
+
 const app = express();
 const port = process.env.port || 4000;
 
@@ -96,7 +97,7 @@ app.get("/drink", (req, res) => {
       return;
     }
 
-    console.log("success");
+    console.log("(/drink)Fetching drink data...success");
     res.send(results);
   });
 });
@@ -117,6 +118,24 @@ app.get("/drink/:d_id", (req, res) => {
     } else {
       res.status(404).send({ message: "Drink not found" });
     }
+  });
+});
+
+// 커스텀 음료 목록 조회
+app.get("/customDrink", verifyJWT, (req, res) => {
+  const userId = req.u_id; // JWT 미들웨어에서 추출한 사용자 ID
+
+  const query = `
+    SELECT * FROM drink WHERE source = ?
+  `;
+
+  connection.query(query, [userId], (error, results) => {
+    if (error) {
+      console.error("Error retrieving custom drinks: ", error);
+      res.status(500).send({ message: "Error retrieving custom drinks" });
+      return;
+    }
+    res.status(200).send(results);
   });
 });
 
@@ -227,7 +246,7 @@ app.get("/user", verifyJWT, (req, res) => {
       res.status(500).send({ message: "Error retrieving users" });
       return;
     }
-    console.log("success");
+    console.log("(/user)Fetching user data...success");
     res.send(results);
   });
 });
@@ -303,6 +322,21 @@ app.post("/auth", async (req, res, next) => {
 app.get("/auth/info", (req, res) => {
   const userId = req.query.user_id;
   const sql = `SELECT u_id, u_name FROM hufs.user WHERE u_id=${userId}`
+  connection.query(sql, (err, result) => {
+    if (!err) {
+      console.log('User ID search complete');
+      res.status(201).send({ result });
+    } else {
+      console.log('err');
+      res.send(err);
+    }
+  })
+})
+
+// 유저 등록 유무 확인
+app.get("/auth/profile", (req, res) => {
+  const userId = req.query.user_id;
+  const sql = `SELECT u_id, u_name, height FROM hufs.user WHERE u_id=${userId}`
   connection.query(sql, (err, result) => {
     if (!err) {
       console.log('User ID search complete');
@@ -556,6 +590,89 @@ app.delete("/intake", verifyJWT, (req, res) => {
     });
 });
 
+
+
+// 회원탈퇴
+app.delete("/user", verifyJWT, (req, res) => {
+  const u_id = req.u_id;
+  console.log(`Starting transaction for user deletion: ${u_id}`);
+
+  connection.beginTransaction(err => {
+    if (err) {
+      console.error("Transaction start error:", err);
+      return res.status(500).send({ message: "Transaction start error" });
+    }
+
+    console.log("Transaction started successfully");
+
+    // favorite 테이블에서 사용자 데이터 삭제
+    const deleteFavoriteQuery = "DELETE FROM hufs.favorite WHERE user = ?";
+    console.log(`Deleting from favorite for user: ${u_id}`);
+    connection.query(deleteFavoriteQuery, [u_id], (error, results) => {
+      if (error) {
+        console.error("Error deleting from favorite:", error);
+        return connection.rollback(() => {
+          res.status(500).send({ message: "Error deleting from favorite" });
+        });
+      }
+
+      console.log("Deleted from favorite successfully");
+
+      // intake 테이블에서 사용자 데이터 삭제
+      const deleteIntakeQuery = "DELETE FROM hufs.intake WHERE user = ?";
+      console.log(`Deleting from intake for user: ${u_id}`);
+      connection.query(deleteIntakeQuery, [u_id], (error, results) => {
+        if (error) {
+          console.error("Error deleting from intake:", error);
+          return connection.rollback(() => {
+            res.status(500).send({ message: "Error deleting from intake" });
+          });
+        }
+
+        console.log("Deleted from intake successfully");
+
+        // drink 테이블에서 사용자 데이터 삭제
+        const deleteCustomDrinkQuery = "DELETE FROM hufs.drink WHERE source = ?";
+        console.log(`Deleting custom drinks for user: ${u_id}`);
+        connection.query(deleteCustomDrinkQuery, [u_id], (error, results) => {
+          if (error) {
+            console.error("Error deleting from drink:", error);
+            return connection.rollback(() => {
+              res.status(500).send({ message: "Error deleting from drink" });
+            });
+          }
+
+          console.log("Deleted custom drinks successfully");
+
+          // 마지막으로 user 테이블에서 사용자 삭제
+          const deleteUserQuery = "DELETE FROM hufs.user WHERE u_id = ?";
+          console.log(`Deleting user: ${u_id}`);
+          connection.query(deleteUserQuery, [u_id], (error, results) => {
+            if (error) {
+              console.error("Error deleting user:", error);
+              return connection.rollback(() => {
+                res.status(500).send({ message: "Error deleting user" });
+              });
+            }
+
+            console.log("Deleted user successfully");
+
+            connection.commit(err => {
+              if (err) {
+                console.error("Transaction commit error:", err);
+                return connection.rollback(() => {
+                  res.status(500).send({ message: "Transaction commit error" });
+                });
+              }
+              console.log(`User deletion transaction committed successfully for user: ${u_id}`);
+              res.status(200).send({ message: "User deleted successfully along with related data." });
+            });
+          });
+        });
+      });
+    });
+  });
+});
 
 
 
