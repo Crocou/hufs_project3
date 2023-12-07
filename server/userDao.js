@@ -33,7 +33,7 @@ const getUserById = async (u_id) => {
 const signUp = async (u_id, u_name) => {
     console.log(u_id, u_name);
     try{
-        const req = await axios.post('http://172.30.1.11:4000/auth/info', {
+        const req = await axios.post('http://172.20.10.3:4000/auth/info', {
             user_id: u_id,
             user_name: u_name,
         }).then((response)=>{

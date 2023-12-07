@@ -115,7 +115,6 @@ const SavedInfoItem = ({ data, onSelect }) => {
 
 // 저장된 음료 정보 전체 목록을 관리하는 컴포넌트
 const SavedInfo = ({ searchTerm, onSelect, drinks }) => {
-  console.log("SI/drinks: ", drinks)
     // 매핑된 음료 데이터
   const mappedDrinks = drinks.map(item => ({
     drinkName: item.d_name,
