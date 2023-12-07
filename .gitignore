@@ -37,5 +37,6 @@ yarn-error.*
 /KakaoAPI.json
 /package-lock.json
 server/userDao.js
-# /Kakao.js
-#/KakoWebView.js
+/Kakao.js
+/KakaoWebView.js
+service/apiService.js

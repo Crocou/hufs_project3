@@ -3,7 +3,7 @@ import { FlatList, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import { Box, Flex, Text, useToast } from "native-base";
 import { AntDesign } from '@expo/vector-icons';
 import { getCustomDrinks, addIntake } from "../service/apiService";
-import { styles as savedInfoStyles } from './SavedInfo';// SavedInfo.js 파일에서 styles를 가져옵니다.
+
 
 const CustomDrinkItem = ({ data, onSelect, onRefresh }) => {
   const toast = useToast();
@@ -42,7 +42,7 @@ const CustomDrinkItem = ({ data, onSelect, onRefresh }) => {
 
   return (
     <TouchableWithoutFeedback onPress={() => onSelect(data)}>
-      <Box {...savedInfoStyles.box}>
+      <Box {...styles.box}>
         <Flex direction="row" width="100%">
           {/* 별 아이콘 */}
           <Flex mr="3" width="10%" justifyContent="flex-start" alignItems="center">
@@ -55,13 +55,13 @@ const CustomDrinkItem = ({ data, onSelect, onRefresh }) => {
           </Flex>
           {/* 텍스트 영역 */}
           <Flex width="70%" flexDirection="column">
-            <Flex {...savedInfoStyles.flexStart}>
+            <Flex {...styles.flexStart}>
               <Text fontWeight="bold">{data.manuf}</Text> {/* 제조사명 */}
             </Flex>
-            <Flex {...savedInfoStyles.flexStart} mt={1}>
+            <Flex {...styles.flexStart} mt={1}>
               <Text fontWeight="bold">{data.d_name}</Text> {/* 음료명 */}
             </Flex>
-            <Flex {...savedInfoStyles.flexRow} mt={3}>
+            <Flex {...styles.flexRow} mt={3}>
               <Flex direction="row">
                 <Text color="#848484">당류: </Text> {/* 당류 */}
                 <Text color="#848484">{formatValue(data.sugar)}g</Text>
@@ -135,8 +135,29 @@ const SavedCustomDrinks = ({ onSelect }) => {
   
   const localStyles = StyleSheet.create({
     flatListContainer: {
-      alignItems: 'center', // 중앙 정렬
+      alignItems: 'center', // 중앙 정렬s
       paddingBottom: 20, // 아래쪽 패딩
       marginTop: 20, // 상단 마진 추가하여 탭과의 간격 조정
     }
   });
+
+  const styles = {
+    box: {
+      mt: 3,
+      p: 3,
+      borderRadius: "20%",
+      borderWidth: "0.5px",
+      borderColor: "lightgray",
+      width: "100%",
+      alignItems: "center"
+    },
+    flexStart: {
+      direction: "row",
+      width: "100%",
+      alignItems: "flex-start"
+    },
+    flexRow: {
+      direction: "row",
+      width: "100%"
+    }
+  };

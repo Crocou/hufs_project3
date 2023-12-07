@@ -87,11 +87,9 @@ function MyTabs() {
 }
 
 // 앱의 메인 네비게이션 로직을 담당하는 컴포넌트
-function AppNavigator({ userId, userName }) {
-  const isAuthenticated = !!userId;
-
+function AppNavigator({ userId, userName, isTokenValid }) {
   return (
-    <Stack.Navigator initialRouteName={isAuthenticated ? "Kakao" : "MainTabs"}>
+    <Stack.Navigator initialRouteName={isTokenValid ? "MainTabs" : "Kakao"}>
       <Stack.Screen name="Kakao" component={Kakao} options={{ headerShown: false }} />
       <Stack.Screen name="KakaoWebView" component={KakaoWebView} options={{ headerShown: false }} />
       <Stack.Screen name="LoginProfile" component={LoginProfileScreen} initialParams={{ userName: userName }} options={{ headerShown: false }} />
@@ -104,6 +102,7 @@ function AppNavigator({ userId, userName }) {
 export default function App() {
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState(null);
+  const [isTokenValid, setIsTokenValid] = useState(false);
 
   useEffect(() => {
     // JWT를 확인하여 사용자 인증 처리
@@ -115,9 +114,11 @@ export default function App() {
         let decodedToken;
         try {
           decodedToken = jwtDecode(token);
+          setIsTokenValid(true);
           console.log('App/디코딩된 토큰: ', decodedToken); // 디코딩된 토큰 로그 출력
         } catch (error) {
           console.error("Error decoding the token:", error);
+          setIsTokenValid(false);
           return;
         }
 
@@ -128,7 +129,7 @@ export default function App() {
         // 사용자 ID가 있을 경우 서버에 확인 요청
         if (userId) {
           try {
-            const response = await fetch(`http://172.20.10.3:4000/auth/info?user_id=${userId}`);
+            const response = await fetch(`http://172.30.1.11:4000/auth/info?user_id=${userId}`);
             const data = await response.json();
             console.log('App/사용자 정보(DB 추출):', data);
 
@@ -143,6 +144,7 @@ export default function App() {
             console.error('Error fetching user info:', fetchError);
           }
         } else {
+          setIsTokenValid(false);
           console.error('User ID not found in decoded token');
         }
       }
@@ -154,8 +156,8 @@ export default function App() {
   return (
     <NativeBaseProvider>
       <NavigationContainer>
-                  <AppNavigator userId={userId} userName={userName} />
-              </NavigationContainer>
+        <AppNavigator userId={userId} userName={userName} isTokenValid={isTokenValid} />
+      </NavigationContainer>
     </NativeBaseProvider>
   );
 }

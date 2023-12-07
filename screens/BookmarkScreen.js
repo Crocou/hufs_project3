@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Image, Modal, Text, TouchableOpacity, TouchableWithoutFeedback, StyleSheet, ScrollView } from 'react-native';
 import SavedCustomDrinks from '../components/SavedCustomDrinks';
 import SavedFavDrinks from '../components/SavedFavDrinks';
 import { getCustomDrinks } from '../service/apiService';
 import SavedInfoFrame from '../components/SavedInfoFrame'; // Import the component
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export function BookmarkScreen() {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -11,7 +12,11 @@ export function BookmarkScreen() {
   const [modalVisible, setModalVisible] = useState(false); // State to handle modal visibility
   const [selectedDrink, setSelectedDrink] = useState(null); // State to hold the selected drink
   const [refreshKey, setRefreshKey] = useState(0);
+  const [tooltipVisible, setTooltipVisible] = useState(false); // 툴팁 가시성을 위한 상태
 
+  const toggleTooltip = () => {
+    setTooltipVisible(!tooltipVisible);
+  };
 
   // 즐겨찾기 목록을 새로고침하는 함수
   const refreshFavorites = () => {
@@ -43,7 +48,30 @@ export function BookmarkScreen() {
 
   return (
     <ScrollView style={styles.container}>
+      {/* 모달을 토글하는 버튼 */}
+      <TouchableOpacity onPress={toggleTooltip} style={styles.infoIcon}>
+        <Icon name="information-outline" size={30} color="#5D5D5D" />
+      </TouchableOpacity>
+
+      {/* 툴팁 모달 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={tooltipVisible}
+        onRequestClose={toggleTooltip}
+      >
+        <TouchableWithoutFeedback onPress={toggleTooltip}>
+          <View style={styles.centeredView}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalView}>
+                <Image source={require('../assets/ToolTip.png')} />
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
       <View style={styles.tabsContainer}>
+        
         <TouchableOpacity
           style={[styles.tab, selectedIndex === 0 && styles.activeTab]}
           onPress={() => setSelectedIndex(0)}
@@ -60,7 +88,9 @@ export function BookmarkScreen() {
             내가 생성
           </Text>
         </TouchableOpacity>
+        
       </View>
+      
       {selectedIndex === 0 ? (
         <SavedFavDrinks
           key={refreshKey} // 새로고침 키를 prop으로 전달
@@ -120,6 +150,34 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#fff', // 활성 탭 텍스트 색상
+  },
+  infoIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    padding: 10,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 1,
+    marginBottom: 350
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 3,
+    padding: 1,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
 
