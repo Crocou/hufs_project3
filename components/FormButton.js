@@ -21,7 +21,7 @@ const NutritionInfoInput = React.memo(({ label, field, formData, setFormData }) 
       onChangeText={(text) => {
         setFormData(prevState => {
           const updatedFormData = { ...prevState, [field]: text };
-          console.log("Updated formData:", updatedFormData); // 로그 출력
+          console.log("Updated formData:", updatedFormData);
           return updatedFormData;
         });
       }}
